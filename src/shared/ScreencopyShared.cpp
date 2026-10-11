@@ -107,6 +107,7 @@ SSelectionData promptForScreencopySelection() {
         if (HANDLE) {
             data.windowHandle = HANDLE->handle;
             data.windowClass  = HANDLE->windowClass;
+            data.windowTitle  = HANDLE->windowTitle;
         }
     } else if (SEL.find("region:") == 0) {
         std::string running = SEL;

@@ -2,6 +2,7 @@
 #include "../core/PortalManager.hpp"
 #include "../helpers/Log.hpp"
 #include "../helpers/MiscFunctions.hpp"
+#include "../shared/RestoreMatch.hpp"
 
 #include <cerrno>
 #include <cstdlib>
@@ -24,8 +25,9 @@ static sdbus::Struct<std::string, uint32_t, sdbus::Variant> getFullRestoreStruct
             break;
         case TYPE_OUTPUT: mapData["output"] = sdbus::Variant{data.output}; break;
         case TYPE_WINDOW:
-            mapData["windowHandle"] = sdbus::Variant{(uint64_t)data.windowHandle->resource()};
+            mapData["windowHandle"] = sdbus::Variant{data.windowHandle ? (uint64_t)data.windowHandle->resource() : (uint64_t)0};
             mapData["windowClass"]  = sdbus::Variant{data.windowClass};
+            mapData["windowTitle"]  = sdbus::Variant{data.windowTitle};
             break;
         default: Debug::log(ERR, "[screencopy] wonk selection in token saving"); break;
     }
@@ -97,6 +99,7 @@ dbUasv CScreencopyPortal::onSelectSources(sdbus::ObjectPath requestHandle, sdbus
         bool        withCursor;
         uint64_t    timeIssued;
         std::string windowClass;
+        std::string windowTitle;
         struct {
             uint32_t x = 0;
             uint32_t y = 0;
@@ -166,6 +169,8 @@ dbUasv CScreencopyPortal::onSelectSources(sdbus::ObjectPath requestHandle, sdbus
                         restoreData.windowHandle = tkval.get<uint64_t>();
                     else if (tkkey == "windowClass")
                         restoreData.windowClass = tkval.get<std::string>();
+                    else if (tkkey == "windowTitle")
+                        restoreData.windowTitle = tkval.get<std::string>();
                     else if (tkkey == "withCursor")
                         restoreData.withCursor = tkval.get<uint32_t>() == EMBEDDED;
                     else if (tkkey == "timeIssued")
@@ -193,11 +198,31 @@ dbUasv CScreencopyPortal::onSelectSources(sdbus::ObjectPath requestHandle, sdbus
         }
     }
 
+    // window restore: re-find the window by app_id + title, never by pointer identity
+    SP<SToplevelHandle> windowMatch;
+    const bool          WANTWINDOW = restoreData.exists && (!restoreData.windowClass.empty() || !restoreData.windowTitle.empty());
+    if (WANTWINDOW) {
+        const auto&                          TLS = g_pPortalManager->m_sHelpers.toplevel->m_vToplevels;
+        std::vector<RestoreMatch::SCandidate> cands;
+        std::vector<SP<SToplevelHandle>>      candTls;
+        for (auto& tl : TLS) {
+            if (!tl || !tl->handle)
+                continue;
+            cands.push_back({tl->windowClass, tl->windowTitle, (uint64_t)tl->handle->resource()});
+            candTls.push_back(tl);
+        }
+        const auto IDX = RestoreMatch::findWindow({restoreData.windowClass, restoreData.windowTitle, restoreData.windowHandle}, cands);
+        if (IDX)
+            windowMatch = candTls[*IDX];
+        else
+            Debug::log(LOG, "[screencopy] restore: no unambiguous window match (class '{}'), will prompt", restoreData.windowClass);
+    }
+
     // clang-format off
     const bool     RESTOREDATAVALID = restoreData.exists &&
     (
-        (!restoreData.output.empty() && g_pPortalManager->getOutputFromName(restoreData.output)) || // output exists
-        (!restoreData.windowClass.empty() && g_pPortalManager->m_sHelpers.toplevel->handleFromClass(restoreData.windowClass)) // window exists
+        (!WANTWINDOW && !restoreData.output.empty() && g_pPortalManager->getOutputFromName(restoreData.output)) || // output exists
+        (WANTWINDOW && windowMatch) // window found unambiguously
     );
     // clang-format on
 
@@ -205,14 +230,14 @@ dbUasv CScreencopyPortal::onSelectSources(sdbus::ObjectPath requestHandle, sdbus
     if (RESTOREDATAVALID) {
         Debug::log(LOG, "[screencopy] restore data valid, not prompting");
 
-        const bool WINDOW      = !restoreData.windowClass.empty();
-        const bool GEOMETRY    = restoreData.geometry.w > 0 && restoreData.geometry.h > 0;
-        const auto HANDLEMATCH = WINDOW && restoreData.windowHandle != 0 ? g_pPortalManager->m_sHelpers.toplevel->handleFromHandleFull(restoreData.windowHandle) : nullptr;
+        const bool WINDOW   = WANTWINDOW;
+        const bool GEOMETRY = !WINDOW && restoreData.geometry.w > 0 && restoreData.geometry.h > 0;
 
         SHAREDATA.output       = restoreData.output;
         SHAREDATA.type         = WINDOW ? TYPE_WINDOW : (GEOMETRY ? TYPE_GEOMETRY : TYPE_OUTPUT);
-        SHAREDATA.windowHandle = WINDOW ? (HANDLEMATCH ? HANDLEMATCH->handle : g_pPortalManager->m_sHelpers.toplevel->handleFromClass(restoreData.windowClass)->handle) : nullptr;
-        SHAREDATA.windowClass  = restoreData.windowClass;
+        SHAREDATA.windowHandle = WINDOW ? windowMatch->handle : nullptr;
+        SHAREDATA.windowClass  = WINDOW ? windowMatch->windowClass : "";
+        SHAREDATA.windowTitle  = WINDOW ? windowMatch->windowTitle : ""; // refresh stored title
         SHAREDATA.allowToken   = true; // user allowed token before
         PSESSION->cursorMode   = restoreData.withCursor ? EMBEDDED : HIDDEN;
 
@@ -273,6 +298,16 @@ dbUasv CScreencopyPortal::onStart(sdbus::ObjectPath requestHandle, sdbus::Object
 
     if (PSESSION->selection.allowToken) {
         // give them a token :)
+        if (PSESSION->selection.type == TYPE_WINDOW && PSESSION->selection.windowHandle) {
+            for (auto& tl : g_pPortalManager->m_sHelpers.toplevel->m_vToplevels) {
+                if (tl && tl->handle == PSESSION->selection.windowHandle) {
+                    PSESSION->selection.windowTitle = tl->windowTitle;
+                    if (!tl->windowClass.empty())
+                        PSESSION->selection.windowClass = tl->windowClass;
+                    break;
+                }
+            }
+        }
         options["restore_data"] = sdbus::Variant{getFullRestoreStruct(PSESSION->selection, PSESSION->cursorMode)};
         options["persist_mode"] = sdbus::Variant{uint32_t{2}};
 

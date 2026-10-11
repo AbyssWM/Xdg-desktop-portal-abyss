@@ -39,6 +39,7 @@ struct SSelectionData {
 
     // for restoring
     std::string windowClass;
+    std::string windowTitle;
 };
 
 struct wl_buffer;

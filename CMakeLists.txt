@@ -86,6 +86,11 @@ endif()
 
 file(GLOB_RECURSE SRCFILES CONFIGURE_DEPENDS "src/*.cpp")
 add_executable(xdg-desktop-portal-abyss ${SRCFILES})
+option(BUILD_TESTING "Build unit tests" OFF)
+if(BUILD_TESTING)
+  add_executable(restore_match_test tests/restore_match_test.cpp src/shared/RestoreMatch.cpp)
+endif()
+
 target_link_libraries(
   xdg-desktop-portal-abyss PRIVATE rt PkgConfig::SDBUS Threads::Threads
                                       PkgConfig::deps)
