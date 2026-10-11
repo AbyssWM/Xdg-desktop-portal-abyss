@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(
-  abyssland-share-picker
+  abyss-share-picker
   VERSION 0.1
   LANGUAGES CXX)
 
@@ -25,30 +25,30 @@ pkg_check_modules(
   abyssutils>=0.2.6)
 
 set(PROJECT_SOURCES main.cpp mainpicker.cpp mainpicker.h mainpicker.ui
-                    elidedbutton.h elidedbutton.cpp)
+                    elidedbutton.h elidedbutton.cpp ../src/shared/PickerData.cpp)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-  qt_add_executable(abyssland-share-picker MANUAL_FINALIZATION
+  qt_add_executable(abyss-share-picker MANUAL_FINALIZATION
                     ${PROJECT_SOURCES})
   # Define target properties for Android with Qt 6 as: set_property(TARGET
-  # abyssland-share-picker APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
+  # abyss-share-picker APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
   # ${CMAKE_CURRENT_SOURCE_DIR}/android) For more information, see
   # https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 else()
   if(ANDROID)
-    add_library(abyssland-share-picker SHARED ${PROJECT_SOURCES})
+    add_library(abyss-share-picker SHARED ${PROJECT_SOURCES})
     # Define properties for Android with Qt 5 after find_package() calls as:
     # set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
   else()
-    add_executable(abyssland-share-picker ${PROJECT_SOURCES})
+    add_executable(abyss-share-picker ${PROJECT_SOURCES})
   endif()
 endif()
 
-target_link_libraries(abyssland-share-picker
+target_link_libraries(abyss-share-picker
                       PRIVATE Qt${QT_VERSION_MAJOR}::Widgets PkgConfig::deps)
 
 set_target_properties(
-  abyssland-share-picker
+  abyss-share-picker
   PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
              MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
              MACOSX_BUNDLE_SHORT_VERSION_STRING
@@ -57,10 +57,10 @@ set_target_properties(
              WIN32_EXECUTABLE TRUE)
 
 install(
-  TARGETS abyssland-share-picker
+  TARGETS abyss-share-picker
   BUNDLE DESTINATION .
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 if(QT_VERSION_MAJOR EQUAL 6)
-  qt_finalize_executable(abyssland-share-picker)
+  qt_finalize_executable(abyss-share-picker)
 endif()

@@ -21,6 +21,18 @@ The desktop portal for Abyssland: screen sharing, screenshots, global shortcuts 
 
 Xdg-desktop-portal-abyss is a fork of [xdg-desktop-portal-hyprland](https://github.com/hyprwm/xdg-desktop-portal-hyprland). Every Abyss library and tool is forked and renamed, so the whole ecosystem builds and updates as one – independent of system packages.
 
+## Desktop integration
+
+The backend uses `org.freedesktop.impl.portal.desktop.abyss`, `abyss.portal`, and the `Abyssland` desktop identity. Abyssland installs `abyssland-portals.conf` with `default=abyss;gtk`. The standard freedesktop portal interfaces and wlroots protocols keep their standard names; Abyssland extensions use `abyssland_*_v1`.
+
+The picker executable is `abyss-share-picker` (the source directory remains `abyssland-share-picker`). Custom picker executables receive arguments directly, including `--allow-token`, and retain the `XDPH_WINDOW_SHARING_LIST` environment contract. Window IDs in that list are transient unsigned Wayland object IDs. Picker output uses `[SELECTION]r/window:ID`, `[SELECTION]/screen:OUTPUT`, or `[SELECTION]/region:OUTPUT@X,Y,W,H`; `r` records restore consent.
+
+Window restore data stores the application ID and title. Matching uses the application ID without case sensitivity and title scoring when several windows match; ambiguous matches open the picker. New tokens contain no process addresses. Existing version 3 addresses are ignored, and version 2 monitor tokens remain supported. Invalid or foreign restore data opens the picker.
+
+## Tests
+
+Configure with `-DBUILD_TESTING=ON`, build, then run `ctest --test-dir build --output-on-failure`. The tests cover restore matching, typed D-Bus token round trips, malformed picker data, and the real Qt window button and restore checkbox using the offscreen platform. They do not verify PipeWire frames or restoration across a live compositor restart.
+
 ## The Abyss ecosystem
 
 | Repository | Based on |

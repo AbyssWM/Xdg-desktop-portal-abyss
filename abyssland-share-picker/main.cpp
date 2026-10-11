@@ -19,6 +19,7 @@
 using namespace Abyssutils::OS;
 
 #include "mainpicker.h"
+#include "../src/shared/PickerData.hpp"
 #include "elidedbutton.h"
 
 std::string execAndGet(const char* cmd) {
@@ -34,48 +35,6 @@ std::string execAndGet(const char* cmd) {
 QApplication* pickerPtr     = nullptr;
 MainPicker*   mainPickerPtr = nullptr;
 
-struct SWindowEntry {
-    std::string        name;
-    std::string        clazz;
-    unsigned long long id = 0;
-};
-
-std::vector<SWindowEntry> getWindows(const char* env) {
-    std::vector<SWindowEntry> result;
-
-    if (!env)
-        return result;
-
-    std::string rolling = env;
-
-    while (!rolling.empty()) {
-        // ID
-        const auto IDSEPPOS = rolling.find("[HC>]");
-        const auto IDSTR    = rolling.substr(0, IDSEPPOS);
-
-        // class
-        const auto CLASSSEPPOS = rolling.find("[HT>]");
-        const auto CLASSSTR    = rolling.substr(IDSEPPOS + 5, CLASSSEPPOS - IDSEPPOS - 5);
-
-        // title
-        const auto TITLESEPPOS = rolling.find("[HE>]");
-        const auto TITLESTR    = rolling.substr(CLASSSEPPOS + 5, TITLESEPPOS - 5 - CLASSSEPPOS);
-
-        // window address
-        const auto WINDOWSEPPOS = rolling.find("[HA>]");
-        const auto WINDOWADDR = rolling.substr(TITLESEPPOS + 5, WINDOWSEPPOS - 5 - TITLESEPPOS);
-
-        try {
-            result.push_back({TITLESTR, CLASSSTR, std::stoull(IDSTR)});
-        } catch (std::exception& e) {
-            // silent err
-        }
-
-        rolling = rolling.substr(WINDOWSEPPOS + 5);
-    }
-
-    return result;
-}
 
 int main(int argc, char* argv[]) {
     qputenv("QT_LOGGING_RULES", "qml=false");
@@ -87,14 +46,16 @@ int main(int argc, char* argv[]) {
     }
 
     const char*  WINDOWLISTSTR = getenv("XDPH_WINDOW_SHARING_LIST");
-    const auto   WINDOWLIST    = getWindows(WINDOWLISTSTR);
+    const auto   WINDOWLIST    = PickerData::parseWindows(WINDOWLISTSTR ? WINDOWLISTSTR : "");
 
     QApplication picker(argc, argv);
     pickerPtr = &picker;
     MainPicker w;
     mainPickerPtr = &w;
 
-    QSettings* settings = new QSettings("/tmp/abyss/abyssland-share-picker.conf", QSettings::IniFormat);
+    const auto RUNTIME_DIR = QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation) + "/abyss";
+    QDir().mkpath(RUNTIME_DIR);
+    QSettings* settings = new QSettings(RUNTIME_DIR + "/abyss-share-picker.conf", QSettings::IniFormat);
     w.setGeometry(0, 0, settings->value("width").toInt(), settings->value("height").toInt());
 
     QCoreApplication::setApplicationName("org.abyssland.xdg-desktop-portal-abyss");

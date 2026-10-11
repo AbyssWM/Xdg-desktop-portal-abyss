@@ -24,7 +24,7 @@ class CToplevelManager {
     void                             activate();
     void                             deactivate();
     SP<SToplevelHandle>              handleFromClass(const std::string& windowClass);
-    SP<SToplevelHandle>              handleFromHandleLower(uint32_t handle);
+    SP<SToplevelHandle>              handleFromID(uint32_t handle);
     SP<SToplevelHandle>              handleFromHandleFull(uint64_t handle);
 
     std::vector<SP<SToplevelHandle>> m_vToplevels;

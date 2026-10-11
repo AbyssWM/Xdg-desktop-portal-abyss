@@ -88,7 +88,21 @@ file(GLOB_RECURSE SRCFILES CONFIGURE_DEPENDS "src/*.cpp")
 add_executable(xdg-desktop-portal-abyss ${SRCFILES})
 option(BUILD_TESTING "Build unit tests" OFF)
 if(BUILD_TESTING)
+  find_package(Qt6 REQUIRED COMPONENTS Widgets)
+  enable_testing()
   add_executable(restore_match_test tests/restore_match_test.cpp src/shared/RestoreMatch.cpp)
+  add_executable(picker_data_test tests/picker_data_test.cpp src/shared/PickerData.cpp)
+  add_executable(restore_data_test tests/restore_data_test.cpp src/shared/RestoreData.cpp)
+  add_executable(picker_gui_test tests/picker_gui_test.cpp src/shared/PickerData.cpp
+                 abyssland-share-picker/mainpicker.cpp abyssland-share-picker/mainpicker.h
+                 abyssland-share-picker/mainpicker.ui abyssland-share-picker/elidedbutton.cpp)
+  set_target_properties(picker_gui_test PROPERTIES AUTOMOC ON AUTOUIC ON)
+  target_link_libraries(picker_gui_test PRIVATE Qt6::Widgets PkgConfig::deps)
+  target_link_libraries(restore_data_test PRIVATE PkgConfig::SDBUS)
+  add_test(NAME restore_match COMMAND restore_match_test)
+  add_test(NAME picker_data COMMAND picker_data_test)
+  add_test(NAME restore_data COMMAND restore_data_test)
+  add_test(NAME picker_gui COMMAND picker_gui_test)
 endif()
 
 target_link_libraries(
@@ -112,6 +126,7 @@ function(protocolnew protoPath protoName external)
            ${CMAKE_SOURCE_DIR}/protocols/${protoName}.hpp
     COMMAND abyss-scanner --client ${path}/${protoName}.xml
             ${CMAKE_SOURCE_DIR}/protocols/
+    DEPENDS ${path}/${protoName}.xml
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
   target_sources(xdg-desktop-portal-abyss PRIVATE protocols/${protoName}.cpp
                                                      protocols/${protoName}.hpp)
@@ -122,6 +137,7 @@ function(protocolWayland)
            ${CMAKE_SOURCE_DIR}/protocols/wayland.hpp
     COMMAND abyss-scanner --wayland-enums --client
             ${WAYLAND_SCANNER_DIR}/wayland.xml ${CMAKE_SOURCE_DIR}/protocols/
+    DEPENDS ${WAYLAND_SCANNER_DIR}/wayland.xml
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
   target_sources(xdg-desktop-portal-abyss PRIVATE protocols/wayland.cpp
                                                      protocols/wayland.hpp)
@@ -145,7 +161,7 @@ protocolnew("unstable/xdg-output" "xdg-output-unstable-v1" false)
 protocolnew("staging/ext-foreign-toplevel-list" "ext-foreign-toplevel-list-v1" false)
 
 # Installation
-install(TARGETS abyssland-share-picker)
+install(TARGETS abyss-share-picker)
 install(TARGETS xdg-desktop-portal-abyss
         DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
 

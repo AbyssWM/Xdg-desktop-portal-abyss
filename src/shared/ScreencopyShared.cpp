@@ -1,4 +1,5 @@
 #include "ScreencopyShared.hpp"
+#include "PickerData.hpp"
 #include "../helpers/MiscFunctions.hpp"
 #include <wayland-client.h>
 #include "../helpers/Log.hpp"
@@ -12,28 +13,16 @@
 #include <abyssutils/os/Process.hpp>
 using namespace Abyssutils::OS;
 
-std::string sanitizeNameForWindowList(const std::string& name) {
-    std::string result = name;
-    std::replace(result.begin(), result.end(), '\'', ' ');
-    std::replace(result.begin(), result.end(), '\"', ' ');
-    std::replace(result.begin(), result.end(), '$', ' ');
-    std::replace(result.begin(), result.end(), '`', ' ');
-    for (size_t i = 1; i < result.size(); ++i) {
-        if (result[i - 1] == '>' && result[i] == ']')
-            result[i] = ' ';
-    }
-    return result;
-}
-
 std::string buildWindowList() {
     std::string result = "";
-    if (!g_pPortalManager->m_sPortals.screencopy->hasToplevelCapabilities())
+    if (!g_pPortalManager->m_sPortals.screencopy || !g_pPortalManager->m_sPortals.screencopy->hasToplevelCapabilities())
         return result;
 
     for (auto& e : g_pPortalManager->m_sHelpers.toplevel->m_vToplevels) {
-        result += std::format("{}[HC>]{}[HT>]{}[HE>]{}[HA>]", (uint32_t)(((uint64_t)e->handle->resource()) & 0xFFFFFFFF), sanitizeNameForWindowList(e->windowClass),
-                              sanitizeNameForWindowList(e->windowTitle),
-                              g_pPortalManager->m_sHelpers.toplevelMapping ? g_pPortalManager->m_sHelpers.toplevelMapping->getWindowForToplevel(e->handle) : 0);
+        if (!e || !e->handle)
+            continue;
+        result += PickerData::encodeWindow({e->windowTitle, e->windowClass, wl_proxy_get_id(e->handle->resource()),
+                                            g_pPortalManager->m_sHelpers.toplevelMapping ? g_pPortalManager->m_sHelpers.toplevelMapping->getWindowForToplevel(e->handle) : 0});
     }
 
     return result;
@@ -42,19 +31,19 @@ std::string buildWindowList() {
 SSelectionData promptForScreencopySelection() {
     SSelectionData      data;
 
-    const char*         WAYLAND_DISPLAY             = getenv("WAYLAND_DISPLAY");
-    const char*         XCURSOR_SIZE                = getenv("XCURSOR_SIZE");
+    const char*         WAYLAND_DISPLAY              = getenv("WAYLAND_DISPLAY");
+    const char*         XCURSOR_SIZE                 = getenv("XCURSOR_SIZE");
     const char*         ABYSSLAND_INSTANCE_SIGNATURE = getenv("ABYSSLAND_INSTANCE_SIGNATURE");
 
     static auto* const* PALLOWTOKENBYDEFAULT =
         (Abyssparse::INT* const*)g_pPortalManager->m_sConfig.config->getConfigValuePtr("screencopy:allow_token_by_default")->getDataStaticPtr();
-    static auto* const*      PCUSTOMPICKER = (Abyssparse::STRING* const)g_pPortalManager->m_sConfig.config->getConfigValuePtr("screencopy:custom_picker_binary")->getDataStaticPtr();
+    static auto* const* PCUSTOMPICKER = (Abyssparse::STRING* const)g_pPortalManager->m_sConfig.config->getConfigValuePtr("screencopy:custom_picker_binary")->getDataStaticPtr();
 
     std::vector<std::string> args;
     if (**PALLOWTOKENBYDEFAULT)
         args.emplace_back("--allow-token");
 
-    CProcess proc(std::string{*PCUSTOMPICKER}.empty() ? "abyssland-share-picker" : *PCUSTOMPICKER, args);
+    CProcess proc(std::string{*PCUSTOMPICKER}.empty() ? "abyss-share-picker" : *PCUSTOMPICKER, args);
     proc.addEnv("WAYLAND_DISPLAY", WAYLAND_DISPLAY ? WAYLAND_DISPLAY : "");
     proc.addEnv("QT_QPA_PLATFORM", "wayland");
     proc.addEnv("XCURSOR_SIZE", XCURSOR_SIZE ? XCURSOR_SIZE : "24");
@@ -79,50 +68,37 @@ SSelectionData promptForScreencopySelection() {
         return data;
     }
 
-    const auto SELECTION = RETVAL.substr(RETVAL.find("[SELECTION]") + 11);
-
-    Debug::log(LOG, "[sc] Selection: {}", SELECTION);
-
-    const auto FLAGS = SELECTION.substr(0, SELECTION.find_first_of('/'));
-    const auto SEL   = SELECTION.substr(SELECTION.find_first_of('/') + 1);
-
-    for (auto& flag : FLAGS) {
-        if (flag == 'r')
-            data.allowToken = true;
-        else
-            Debug::log(LOG, "[screencopy] unknown flag from share-picker: {}", flag);
+    const auto SELECTION = PickerData::parseSelection(RETVAL);
+    if (!SELECTION) {
+        Debug::log(ERR, "[screencopy] Invalid share-picker selection");
+        return data;
     }
-
-    if (SEL.find("screen:") == 0) {
-        data.type   = TYPE_OUTPUT;
-        data.output = SEL.substr(7);
-
-        data.output.pop_back();
-    } else if (SEL.find("window:") == 0) {
-        data.type         = TYPE_WINDOW;
-        uint32_t handleLo = std::stoull(SEL.substr(7));
-        data.windowHandle = nullptr;
-
-        const auto HANDLE = g_pPortalManager->m_sHelpers.toplevel->handleFromHandleLower(handleLo);
-        if (HANDLE) {
+    data.allowToken = SELECTION->allowToken;
+    switch (SELECTION->type) {
+        case PickerData::eType::OUTPUT:
+            data.type   = TYPE_OUTPUT;
+            data.output = SELECTION->output;
+            break;
+        case PickerData::eType::WINDOW: {
+            if (!g_pPortalManager->m_sHelpers.toplevel)
+                return {};
+            const auto HANDLE = g_pPortalManager->m_sHelpers.toplevel->handleFromID(SELECTION->id);
+            if (!HANDLE || !HANDLE->handle)
+                return {};
+            data.type         = TYPE_WINDOW;
             data.windowHandle = HANDLE->handle;
             data.windowClass  = HANDLE->windowClass;
             data.windowTitle  = HANDLE->windowTitle;
+            break;
         }
-    } else if (SEL.find("region:") == 0) {
-        std::string running = SEL;
-        running             = running.substr(7);
-        data.type           = TYPE_GEOMETRY;
-        data.output         = running.substr(0, running.find_first_of('@'));
-        running             = running.substr(running.find_first_of('@') + 1);
-
-        data.x  = std::stoi(running.substr(0, running.find_first_of(',')));
-        running = running.substr(running.find_first_of(',') + 1);
-        data.y  = std::stoi(running.substr(0, running.find_first_of(',')));
-        running = running.substr(running.find_first_of(',') + 1);
-        data.w  = std::stoi(running.substr(0, running.find_first_of(',')));
-        running = running.substr(running.find_first_of(',') + 1);
-        data.h  = std::stoi(running);
+        case PickerData::eType::REGION:
+            data.type   = TYPE_GEOMETRY;
+            data.output = SELECTION->output;
+            data.x      = SELECTION->x;
+            data.y      = SELECTION->y;
+            data.w      = SELECTION->w;
+            data.h      = SELECTION->h;
+            break;
     }
 
     return data;

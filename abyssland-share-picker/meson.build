@@ -8,13 +8,14 @@ moc = qt.compile_moc(headers: 'mainpicker.h')
 
 sources = files([
   'main.cpp',
+  '../src/shared/PickerData.cpp',
   'mainpicker.cpp',
   'mainpicker.h',
   'elidedbutton.h',
   'elidedbutton.cpp',
 ])
 
-executable('abyssland-share-picker',
+executable('abyss-share-picker',
   sources,
   ui_files,
   moc,

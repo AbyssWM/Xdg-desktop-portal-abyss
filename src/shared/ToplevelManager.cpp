@@ -84,9 +84,9 @@ SP<SToplevelHandle> CToplevelManager::handleFromClass(const std::string& windowC
     return nullptr;
 }
 
-SP<SToplevelHandle> CToplevelManager::handleFromHandleLower(uint32_t handle) {
+SP<SToplevelHandle> CToplevelManager::handleFromID(uint32_t handle) {
     for (auto& tl : m_vToplevels) {
-        if (((uint64_t)tl->handle->resource() & 0xFFFFFFFF) == handle)
+        if (tl && tl->handle && wl_proxy_get_id(tl->handle->resource()) == handle)
             return tl;
     }
 

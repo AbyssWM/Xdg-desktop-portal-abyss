@@ -4,10 +4,10 @@
 #include <cctype>
 
 namespace RestoreMatch {
-    static constexpr double MIN_SCORE = 0.6;  // best must reach this
+    static constexpr double MIN_SCORE  = 0.6;  // best must reach this
     static constexpr double MIN_MARGIN = 0.15; // and lead the runner-up by this
 
-    static std::string lower(std::string s) {
+    static std::string      lower(std::string s) {
         std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
         return s;
     }
@@ -89,7 +89,7 @@ namespace RestoreMatch {
             return found;
         }
 
-        const auto cls = lower(stored.windowClass);
+        const auto          cls = lower(stored.windowClass);
         std::vector<size_t> idx;
         for (size_t i = 0; i < cands.size(); ++i)
             if (lower(cands[i].windowClass) == cls)
@@ -106,7 +106,8 @@ namespace RestoreMatch {
 
         const double best = *std::max_element(scores.begin(), scores.end());
 
-        // title unknown / all equally good: only the handle (same class) can break the tie
+        // A proxy address belongs to one connection and can be reused after a restart.
+        // Persistent tokens may only select an unambiguous app/title match.
         std::vector<size_t> top;
         for (size_t k = 0; k < idx.size(); ++k)
             if (scores[k] == best)
@@ -115,20 +116,8 @@ namespace RestoreMatch {
         if (!stored.windowTitle.empty() && best < MIN_SCORE)
             return std::nullopt;
 
-        if (top.size() > 1) {
-            if (stored.handleId == 0)
-                return std::nullopt;
-            std::optional<size_t> hit;
-            for (auto k : top) {
-                if (cands[idx[k]].handleId == stored.handleId) {
-                    if (hit)
-                        return std::nullopt;
-                    hit = idx[k];
-                }
-            }
-            // an unknown-title (old) token only gets here with the handle hit; fine
-            return hit;
-        }
+        if (top.size() > 1)
+            return std::nullopt;
 
         double second = 0.0;
         for (size_t k = 0; k < idx.size(); ++k)

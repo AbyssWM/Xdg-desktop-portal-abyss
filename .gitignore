@@ -69,3 +69,4 @@ result-man
 
 # MISCELLANEOUS
 .cache
+build-test/

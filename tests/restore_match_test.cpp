@@ -18,8 +18,9 @@ int main() {
         CHECK("no match -> prompt", !findWindow({"discord", "x", 0}, c));
     }
     {
-        std::vector<SCandidate> c{{"firefox", "Inbox \xE2\x80\x94 Mozilla Firefox", 1}, {"firefox", "YouTube - Mozilla Firefox", 2}, {"firefox", "Gitea \xE2\x80\x94 Mozilla Firefox", 3}};
-        auto                    r = findWindow({"firefox", "YouTube - Mozilla Firefox", 777}, c);
+        std::vector<SCandidate> c{
+            {"firefox", "Inbox \xE2\x80\x94 Mozilla Firefox", 1}, {"firefox", "YouTube - Mozilla Firefox", 2}, {"firefox", "Gitea \xE2\x80\x94 Mozilla Firefox", 3}};
+        auto r = findWindow({"firefox", "YouTube - Mozilla Firefox", 777}, c);
         CHECK("several firefox, exact title", r && *r == 1);
         r = findWindow({"firefox", "Inbox \xE2\x80\x94 Mozilla Firefox", 777}, c);
         CHECK("several firefox, exact title (em dash)", r && *r == 0);
@@ -39,7 +40,7 @@ int main() {
         CHECK("two identical titles, no handle -> prompt", !findWindow({"foot", "shell", 0}, c));
         CHECK("two identical titles, stale handle -> prompt", !findWindow({"foot", "shell", 99}, c));
         auto r = findWindow({"foot", "shell", 11}, c);
-        CHECK("identical titles, live handle tie-break", r && *r == 1);
+        CHECK("identical titles, reused pointer -> prompt", !r);
     }
     {
         std::vector<SCandidate> c{{"", "Weird Window", 1}, {"", "Other", 2}, {"x", "Weird Window", 3}};
@@ -56,7 +57,7 @@ int main() {
         std::vector<SCandidate> two{{"kitty", "a", 1}, {"kitty", "b", 2}};
         CHECK("old token, two windows, no handle hit -> prompt", !findWindow({"kitty", "", 5}, two));
         auto r = findWindow({"kitty", "", 2}, two);
-        CHECK("old token, two windows, handle hit", r && *r == 1);
+        CHECK("old token, two windows, reused pointer -> prompt", !r);
     }
     std::printf("%s\n", fails ? "FAILED" : "ALL OK");
     return fails;
