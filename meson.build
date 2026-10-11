@@ -1,4 +1,4 @@
-project('xdg-desktop-portal-hyprland', 'cpp', 'c',
+project('xdg-desktop-portal-abyss', 'cpp', 'c',
 	version: run_command('cat', files('VERSION'), check: true).stdout().strip(),
 	license: 'BSD-3-Clause',
 	meson_version: '>=0.63.0',
@@ -38,7 +38,7 @@ conf_data.set('LIBEXECDIR', join_paths(get_option('prefix'), get_option('libexec
 systemd = dependency('systemd', required: get_option('systemd'))
 
 if systemd.found()
-	systemd_service_file = 'xdg-desktop-portal-hyprland.service'
+	systemd_service_file = 'xdg-desktop-portal-abyss.service'
 	user_unit_dir = systemd.get_variable(pkgconfig: 'systemduserunitdir',
 		pkgconfig_define: ['prefix', get_option('prefix')])
 
@@ -52,13 +52,13 @@ endif
 
 configure_file(
 	configuration: conf_data,
-	input: 'org.freedesktop.impl.portal.desktop.hyprland.service.in',
+	input: 'org.freedesktop.impl.portal.desktop.abyss.service.in',
 	output: '@BASENAME@',
 	install_dir: join_paths(get_option('datadir'), 'dbus-1', 'services'),
 )
 
 install_data(
-	'hyprland.portal',
+	'abyss.portal',
 	install_dir: join_paths(get_option('datadir'), 'xdg-desktop-portal', 'portals'),
 )
 version = run_command('cat', files('VERSION'), check: true).stdout().strip()
@@ -69,4 +69,4 @@ inc = include_directories('.', 'protocols')
 
 subdir('protocols')
 subdir('src')
-subdir('hyprland-share-picker')
+subdir('abyssland-share-picker')

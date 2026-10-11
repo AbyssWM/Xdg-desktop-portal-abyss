@@ -35,7 +35,7 @@ static sdbus::Struct<std::string, uint32_t, sdbus::Variant> getFullRestoreStruct
 
     sdbus::Variant restoreData{mapData};
 
-    return sdbus::Struct<std::string, uint32_t, sdbus::Variant>{"hyprland", 3, restoreData};
+    return sdbus::Struct<std::string, uint32_t, sdbus::Variant>{"abyssland", 3, restoreData};
 }
 
 dbUasv CScreencopyPortal::onCreateSession(sdbus::ObjectPath requestHandle, sdbus::ObjectPath sessionHandle, std::string appID,
@@ -47,7 +47,7 @@ dbUasv CScreencopyPortal::onCreateSession(sdbus::ObjectPath requestHandle, sdbus
     Debug::log(LOG, "[screencopy]  | {}", sessionHandle.c_str());
     Debug::log(LOG, "[screencopy]  | appid: {}", appID);
 
-    const Hyprutils::Memory::CWeakPointer<SSession> PSESSION = m_vSessions.emplace_back(Hyprutils::Memory::makeUnique<SSession>(appID, requestHandle, sessionHandle));
+    const Abyssutils::Memory::CWeakPointer<SSession> PSESSION = m_vSessions.emplace_back(Abyssutils::Memory::makeUnique<SSession>(appID, requestHandle, sessionHandle));
     PSESSION->self                                           = PSESSION;
 
     // create objects
@@ -77,7 +77,7 @@ dbUasv CScreencopyPortal::onSelectSources(sdbus::ObjectPath requestHandle, sdbus
     Debug::log(LOG, "[screencopy]  | appid: {}", appID);
 
     const auto          PSESSION    = getSession(sessionHandle);
-    static auto* const* PCURSORMODE = (Hyprlang::INT* const*)g_pPortalManager->m_sConfig.config->getConfigValuePtr("screencopy:cursor_mode")->getDataStaticPtr();
+    static auto* const* PCURSORMODE = (Abyssparse::INT* const*)g_pPortalManager->m_sConfig.config->getConfigValuePtr("screencopy:cursor_mode")->getDataStaticPtr();
 
     if (!PSESSION) {
         Debug::log(ERR, "[screencopy] SelectSources: no session found??");
@@ -128,7 +128,7 @@ dbUasv CScreencopyPortal::onSelectSources(sdbus::ObjectPath requestHandle, sdbus
 
             sdbus::Variant data = suv.get<2>();
 
-            if (issuer != "hyprland") {
+            if (issuer != "abyssland") {
                 Debug::log(LOG, "[screencopy] Restore token from {}, ignoring", issuer);
                 continue;
             }
@@ -237,7 +237,7 @@ dbUasv CScreencopyPortal::onSelectSources(sdbus::ObjectPath requestHandle, sdbus
         const auto POUTPUT = g_pPortalManager->getOutputFromName(SHAREDATA.output);
 
         if (POUTPUT) {
-            static auto* const* PFPS = (Hyprlang::INT* const*)g_pPortalManager->m_sConfig.config->getConfigValuePtr("screencopy:max_fps")->getDataStaticPtr();
+            static auto* const* PFPS = (Abyssparse::INT* const*)g_pPortalManager->m_sConfig.config->getConfigValuePtr("screencopy:max_fps")->getDataStaticPtr();
 
             if (**PFPS <= 0)
                 PSESSION->sharingData.framerate = POUTPUT->refreshRate;
@@ -377,7 +377,7 @@ void CScreencopyPortal::SSession::startCopy() {
             Debug::log(ERR, "[screencopy] selected invalid window?");
             return;
         }
-        sharingData.windowFrameCallback = makeShared<CCHyprlandToplevelExportFrameV1>(
+        sharingData.windowFrameCallback = makeShared<CCAbysslandToplevelExportFrameV1>(
             g_pPortalManager->m_sPortals.screencopy->m_sState.toplevel->sendCaptureToplevelWithWlrToplevelHandle(OVERLAYCURSOR, selection.windowHandle->resource()));
         sharingData.transform = WL_OUTPUT_TRANSFORM_NORMAL;
     } else {
@@ -507,7 +507,7 @@ void CScreencopyPortal::SSession::initCallbacks() {
             Debug::log(TRACE, "[sc] wlr frame copied");
         });
     } else if (sharingData.windowFrameCallback) {
-        sharingData.windowFrameCallback->setBuffer([this, self = self](CCHyprlandToplevelExportFrameV1* r, uint32_t format, uint32_t width, uint32_t height, uint32_t stride) {
+        sharingData.windowFrameCallback->setBuffer([this, self = self](CCAbysslandToplevelExportFrameV1* r, uint32_t format, uint32_t width, uint32_t height, uint32_t stride) {
             Debug::log(TRACE, "[sc] hlOnBuffer for {}", (void*)self.get());
             if (!self)
                 return;
@@ -520,7 +520,7 @@ void CScreencopyPortal::SSession::initCallbacks() {
 
             // todo: done if ver < 3
         });
-        sharingData.windowFrameCallback->setReady([this, self = self](CCHyprlandToplevelExportFrameV1* r, uint32_t tv_sec_hi, uint32_t tv_sec_lo, uint32_t tv_nsec) {
+        sharingData.windowFrameCallback->setReady([this, self = self](CCAbysslandToplevelExportFrameV1* r, uint32_t tv_sec_hi, uint32_t tv_sec_lo, uint32_t tv_nsec) {
             Debug::log(TRACE, "[sc] hlOnReady for {}", (void*)self.get());
             if (!self)
                 return;
@@ -540,13 +540,13 @@ void CScreencopyPortal::SSession::initCallbacks() {
 
             sharingData.windowFrameCallback.reset();
         });
-        sharingData.windowFrameCallback->setFailed([this, self = self](CCHyprlandToplevelExportFrameV1* r) {
+        sharingData.windowFrameCallback->setFailed([this, self = self](CCAbysslandToplevelExportFrameV1* r) {
             Debug::log(TRACE, "[sc] hlOnFailed for {}", (void*)self.get());
             if (!self)
                 return;
             sharingData.status = FRAME_FAILED;
         });
-        sharingData.windowFrameCallback->setDamage([this, self = self](CCHyprlandToplevelExportFrameV1* r, uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
+        sharingData.windowFrameCallback->setDamage([this, self = self](CCAbysslandToplevelExportFrameV1* r, uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
             Debug::log(TRACE, "[sc] hlOnDamage for {}", (void*)self.get());
             if (!self)
                 return;
@@ -560,7 +560,7 @@ void CScreencopyPortal::SSession::initCallbacks() {
 
             Debug::log(TRACE, "[sc] hl damage: {} {} {} {}", x, y, width, height);
         });
-        sharingData.windowFrameCallback->setLinuxDmabuf([this, self = self](CCHyprlandToplevelExportFrameV1* r, uint32_t format, uint32_t width, uint32_t height) {
+        sharingData.windowFrameCallback->setLinuxDmabuf([this, self = self](CCAbysslandToplevelExportFrameV1* r, uint32_t format, uint32_t width, uint32_t height) {
             Debug::log(TRACE, "[sc] hlOnDmabuf for {}", (void*)self.get());
             if (!self)
                 return;
@@ -569,7 +569,7 @@ void CScreencopyPortal::SSession::initCallbacks() {
             sharingData.frameInfoDMA.h   = height;
             sharingData.frameInfoDMA.fmt = format;
         });
-        sharingData.windowFrameCallback->setBufferDone([this, self = self](CCHyprlandToplevelExportFrameV1* r) {
+        sharingData.windowFrameCallback->setBufferDone([this, self = self](CCAbysslandToplevelExportFrameV1* r) {
             Debug::log(TRACE, "[sc] hlOnBufferDone for {}", (void*)self.get());
             if (!self)
                 return;
@@ -679,7 +679,7 @@ CScreencopyPortal::CScreencopyPortal(SP<CCZwlrScreencopyManagerV1> mgr) {
     Debug::log(LOG, "[screencopy] init successful");
 }
 
-void CScreencopyPortal::appendToplevelExport(SP<CCHyprlandToplevelExportManagerV1> proto) {
+void CScreencopyPortal::appendToplevelExport(SP<CCAbysslandToplevelExportManagerV1> proto) {
     m_sState.toplevel = proto;
 
     Debug::log(LOG, "[screencopy] Registered for toplevel export");
@@ -1123,7 +1123,7 @@ uint32_t CPipewireConnection::buildFormatsFor(spa_pod_builder* b[2], const spa_p
     uint32_t            modCount   = 0;
     uint64_t*           modifiers  = nullptr;
 
-    static auto* const* PFORCESHM = (Hyprlang::INT* const*)g_pPortalManager->m_sConfig.config->getConfigValuePtr("screencopy:force_shm")->getDataStaticPtr();
+    static auto* const* PFORCESHM = (Abyssparse::INT* const*)g_pPortalManager->m_sConfig.config->getConfigValuePtr("screencopy:force_shm")->getDataStaticPtr();
     const bool          forceSHM  = **PFORCESHM || stream->dmaBufFailed;
 
     if (!forceSHM && build_modifierlist(stream, stream->pSession->sharingData.frameInfoDMA.fmt, &modifiers, &modCount) && modCount > 0) {

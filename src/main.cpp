@@ -4,7 +4,7 @@
 #include "core/PortalManager.hpp"
 
 void printHelp() {
-    std::cout << R"#(┃ xdg-desktop-portal-hyprland
+    std::cout << R"#(┃ xdg-desktop-portal-abyss
 ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┃ -v (--verbose)    → enable trace logging
 ┃ -q (--quiet)      → disable logging
@@ -29,7 +29,7 @@ int main(int argc, char** argv, char** envp) {
             printHelp();
             return 0;
         } else if (arg == "--version" || arg == "-V") {
-            std::cout << "xdg-desktop-portal-hyprland v" << XDPH_VERSION << "\n";
+            std::cout << "xdg-desktop-portal-abyss v" << XDPH_VERSION << "\n";
             return 0;
         } else {
             printHelp();

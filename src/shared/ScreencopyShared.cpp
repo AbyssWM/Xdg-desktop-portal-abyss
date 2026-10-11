@@ -9,8 +9,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <hyprutils/os/Process.hpp>
-using namespace Hyprutils::OS;
+#include <abyssutils/os/Process.hpp>
+using namespace Abyssutils::OS;
 
 std::string sanitizeNameForWindowList(const std::string& name) {
     std::string result = name;
@@ -44,21 +44,21 @@ SSelectionData promptForScreencopySelection() {
 
     const char*         WAYLAND_DISPLAY             = getenv("WAYLAND_DISPLAY");
     const char*         XCURSOR_SIZE                = getenv("XCURSOR_SIZE");
-    const char*         HYPRLAND_INSTANCE_SIGNATURE = getenv("HYPRLAND_INSTANCE_SIGNATURE");
+    const char*         ABYSSLAND_INSTANCE_SIGNATURE = getenv("ABYSSLAND_INSTANCE_SIGNATURE");
 
     static auto* const* PALLOWTOKENBYDEFAULT =
-        (Hyprlang::INT* const*)g_pPortalManager->m_sConfig.config->getConfigValuePtr("screencopy:allow_token_by_default")->getDataStaticPtr();
-    static auto* const*      PCUSTOMPICKER = (Hyprlang::STRING* const)g_pPortalManager->m_sConfig.config->getConfigValuePtr("screencopy:custom_picker_binary")->getDataStaticPtr();
+        (Abyssparse::INT* const*)g_pPortalManager->m_sConfig.config->getConfigValuePtr("screencopy:allow_token_by_default")->getDataStaticPtr();
+    static auto* const*      PCUSTOMPICKER = (Abyssparse::STRING* const)g_pPortalManager->m_sConfig.config->getConfigValuePtr("screencopy:custom_picker_binary")->getDataStaticPtr();
 
     std::vector<std::string> args;
     if (**PALLOWTOKENBYDEFAULT)
         args.emplace_back("--allow-token");
 
-    CProcess proc(std::string{*PCUSTOMPICKER}.empty() ? "hyprland-share-picker" : *PCUSTOMPICKER, args);
+    CProcess proc(std::string{*PCUSTOMPICKER}.empty() ? "abyssland-share-picker" : *PCUSTOMPICKER, args);
     proc.addEnv("WAYLAND_DISPLAY", WAYLAND_DISPLAY ? WAYLAND_DISPLAY : "");
     proc.addEnv("QT_QPA_PLATFORM", "wayland");
     proc.addEnv("XCURSOR_SIZE", XCURSOR_SIZE ? XCURSOR_SIZE : "24");
-    proc.addEnv("HYPRLAND_INSTANCE_SIGNATURE", HYPRLAND_INSTANCE_SIGNATURE ? HYPRLAND_INSTANCE_SIGNATURE : "0");
+    proc.addEnv("ABYSSLAND_INSTANCE_SIGNATURE", ABYSSLAND_INSTANCE_SIGNATURE ? ABYSSLAND_INSTANCE_SIGNATURE : "0");
     proc.addEnv("XDPH_WINDOW_SHARING_LIST", buildWindowList()); // buildWindowList will sanitize any shell stuff in case the picker (qt) does something funky? It shouldn't.
 
     if (!proc.runSync())
@@ -73,7 +73,7 @@ SSelectionData promptForScreencopySelection() {
 
         if (RETVAL.contains(QPA_ERR) || RETVALERR.contains(QPA_ERR)) {
             // prompt the user to install qt5-wayland and qt6-wayland
-            addHyprlandNotification("3", 7000, "0", "[xdph] Could not open the picker: qt5-wayland or qt6-wayland doesn't seem to be installed.");
+            addAbysslandNotification("3", 7000, "0", "[xdph] Could not open the picker: qt5-wayland or qt6-wayland doesn't seem to be installed.");
         }
 
         return data;

@@ -3,27 +3,27 @@ wayland_protos = dependency('wayland-protocols',
 	default_options: ['tests=false'],
 )
 
-hyprland_protos = dependency('hyprland-protocols',
+abyssland_protos = dependency('abyssland-protocols',
 	version: '>=0.7.0',
-	fallback: 'hyprland-protocols',
+	fallback: 'abyssland-protocols',
 )
 
 wl_protocol_dir = wayland_protos.get_variable('pkgdatadir')
-hl_protocol_dir = hyprland_protos.get_variable('pkgdatadir')
+hl_protocol_dir = abyssland_protos.get_variable('pkgdatadir')
 
-hyprwayland_scanner_dep = dependency('hyprwayland-scanner', required: true, native: true, version: '>=0.4.2')
-hyprwayland_scanner = find_program(
-	hyprwayland_scanner_dep.get_variable(pkgconfig: 'hyprwayland_scanner'),
+abyss_scanner_dep = dependency('abyss-scanner', required: true, native: true, version: '>=0.4.2')
+abyss_scanner = find_program(
+	abyss_scanner_dep.get_variable(pkgconfig: 'abyss_scanner'),
 	native: true,
 )
 
 client_protocols = [
 	'wlr-screencopy-unstable-v1.xml',
 	'wlr-foreign-toplevel-management-unstable-v1.xml',
-	hl_protocol_dir / 'protocols/hyprland-toplevel-export-v1.xml',
-	hl_protocol_dir / 'protocols/hyprland-toplevel-mapping-v1.xml',
-	hl_protocol_dir / 'protocols/hyprland-global-shortcuts-v1.xml',
-	hl_protocol_dir / 'protocols/hyprland-input-capture-v1.xml',
+	hl_protocol_dir / 'protocols/abyssland-toplevel-export-v1.xml',
+	hl_protocol_dir / 'protocols/abyssland-toplevel-mapping-v1.xml',
+	hl_protocol_dir / 'protocols/abyssland-global-shortcuts-v1.xml',
+	hl_protocol_dir / 'protocols/abyssland-input-capture-v1.xml',
 	wl_protocol_dir / 'stable/linux-dmabuf/linux-dmabuf-v1.xml',
 	wl_protocol_dir / 'unstable/xdg-output/xdg-output-unstable-v1.xml',
 	wl_protocol_dir / 'staging/ext-foreign-toplevel-list/ext-foreign-toplevel-list-v1.xml',
@@ -36,7 +36,7 @@ foreach xml: client_protocols
 		xml.underscorify() + '_c',
 		input: xml,
 		output: ['@BASENAME@.cpp', '@BASENAME@.hpp'],
-		command: [hyprwayland_scanner, '--client', '@INPUT@', '@OUTDIR@'],
+		command: [abyss_scanner, '--client', '@INPUT@', '@OUTDIR@'],
 	)
 endforeach
 
@@ -48,7 +48,7 @@ wayland_protocol = custom_target(
 	wayland_xml.underscorify(),
 	input: wayland_xml,
 	output: ['@BASENAME@.cpp', '@BASENAME@.hpp'],
-	command: [hyprwayland_scanner, '--wayland-enums', '--client', '@INPUT@', '@OUTDIR@'],
+	command: [abyss_scanner, '--wayland-enums', '--client', '@INPUT@', '@OUTDIR@'],
 )
 
 lib_client_protos = static_library(

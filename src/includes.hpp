@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hyprutils/memory/WeakPtr.hpp>
-using namespace Hyprutils::Memory;
+#include <abyssutils/memory/WeakPtr.hpp>
+using namespace Abyssutils::Memory;
 #define SP CSharedPointer
 #define WP CWeakPointer

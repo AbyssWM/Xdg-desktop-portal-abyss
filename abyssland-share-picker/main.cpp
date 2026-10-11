@@ -15,8 +15,8 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <hyprutils/os/Process.hpp>
-using namespace Hyprutils::OS;
+#include <abyssutils/os/Process.hpp>
+using namespace Abyssutils::OS;
 
 #include "mainpicker.h"
 #include "elidedbutton.h"
@@ -94,10 +94,10 @@ int main(int argc, char* argv[]) {
     MainPicker w;
     mainPickerPtr = &w;
 
-    QSettings* settings = new QSettings("/tmp/hypr/hyprland-share-picker.conf", QSettings::IniFormat);
+    QSettings* settings = new QSettings("/tmp/abyss/abyssland-share-picker.conf", QSettings::IniFormat);
     w.setGeometry(0, 0, settings->value("width").toInt(), settings->value("height").toInt());
 
-    QCoreApplication::setApplicationName("org.hyprland.xdg-desktop-portal-hyprland");
+    QCoreApplication::setApplicationName("org.abyssland.xdg-desktop-portal-abyss");
 
     // get the tabwidget
     const auto TABWIDGET        = w.findChild<QTabWidget*>("tabWidget");

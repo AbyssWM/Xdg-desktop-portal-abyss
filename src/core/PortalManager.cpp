@@ -67,16 +67,16 @@ CPortalManager::CPortalManager() {
         Debug::log(WARN, "neither $HOME nor $XDG_CONFIG_HOME is present in env");
 
     std::string path =
-        (!XDG_CONFIG_HOME && !HOME) ? "/tmp/xdph.conf" : (XDG_CONFIG_HOME ? std::string{XDG_CONFIG_HOME} + "/hypr/xdph.conf" : std::string{HOME} + "/.config/hypr/xdph.conf");
+        (!XDG_CONFIG_HOME && !HOME) ? "/tmp/xdph.conf" : (XDG_CONFIG_HOME ? std::string{XDG_CONFIG_HOME} + "/abyss/xdph.conf" : std::string{HOME} + "/.config/abyss/xdph.conf");
 
-    m_sConfig.config = std::make_unique<Hyprlang::CConfig>(path.c_str(), Hyprlang::SConfigOptions{.allowMissingConfig = true});
+    m_sConfig.config = std::make_unique<Abyssparse::CConfig>(path.c_str(), Abyssparse::SConfigOptions{.allowMissingConfig = true});
 
-    m_sConfig.config->addConfigValue("general:toplevel_dynamic_bind", Hyprlang::INT{0L});
-    m_sConfig.config->addConfigValue("screencopy:max_fps", Hyprlang::INT{120L});
-    m_sConfig.config->addConfigValue("screencopy:allow_token_by_default", Hyprlang::INT{0L});
-    m_sConfig.config->addConfigValue("screencopy:custom_picker_binary", Hyprlang::STRING{""});
-    m_sConfig.config->addConfigValue("screencopy:force_shm", Hyprlang::INT{0L});
-    m_sConfig.config->addConfigValue("screencopy:cursor_mode", Hyprlang::INT{0L});
+    m_sConfig.config->addConfigValue("general:toplevel_dynamic_bind", Abyssparse::INT{0L});
+    m_sConfig.config->addConfigValue("screencopy:max_fps", Abyssparse::INT{120L});
+    m_sConfig.config->addConfigValue("screencopy:allow_token_by_default", Abyssparse::INT{0L});
+    m_sConfig.config->addConfigValue("screencopy:custom_picker_binary", Abyssparse::STRING{""});
+    m_sConfig.config->addConfigValue("screencopy:force_shm", Abyssparse::INT{0L});
+    m_sConfig.config->addConfigValue("screencopy:cursor_mode", Abyssparse::INT{0L});
 
     m_sConfig.config->commence();
     m_sConfig.config->parse();
@@ -92,22 +92,22 @@ void CPortalManager::onGlobal(uint32_t name, const char* interface, uint32_t ver
             (wl_proxy*)wl_registry_bind((wl_registry*)m_sWaylandConnection.registry->resource(), name, &zwlr_screencopy_manager_v1_interface, version)));
     }
 
-    if (INTERFACE == hyprland_global_shortcuts_manager_v1_interface.name) {
-        m_sPortals.globalShortcuts = std::make_unique<CGlobalShortcutsPortal>(makeShared<CCHyprlandGlobalShortcutsManagerV1>(
-            (wl_proxy*)wl_registry_bind((wl_registry*)m_sWaylandConnection.registry->resource(), name, &hyprland_global_shortcuts_manager_v1_interface, version)));
+    if (INTERFACE == abyssland_global_shortcuts_manager_v1_interface.name) {
+        m_sPortals.globalShortcuts = std::make_unique<CGlobalShortcutsPortal>(makeShared<CCAbysslandGlobalShortcutsManagerV1>(
+            (wl_proxy*)wl_registry_bind((wl_registry*)m_sWaylandConnection.registry->resource(), name, &abyssland_global_shortcuts_manager_v1_interface, version)));
     }
-    if (INTERFACE == hyprland_input_capture_manager_v1_interface.name)
-        m_sPortals.inputCapture = std::make_unique<CInputCapturePortal>(makeShared<CCHyprlandInputCaptureManagerV1>(
-            (wl_proxy*)wl_registry_bind((wl_registry*)m_sWaylandConnection.registry->resource(), name, &hyprland_input_capture_manager_v1_interface, version)));
+    if (INTERFACE == abyssland_input_capture_manager_v1_interface.name)
+        m_sPortals.inputCapture = std::make_unique<CInputCapturePortal>(makeShared<CCAbysslandInputCaptureManagerV1>(
+            (wl_proxy*)wl_registry_bind((wl_registry*)m_sWaylandConnection.registry->resource(), name, &abyssland_input_capture_manager_v1_interface, version)));
     else if (INTERFACE == zxdg_output_manager_v1_interface.name) {
         m_sWaylandConnection.xdgOutputManager = makeShared<CCZxdgOutputManagerV1>(
             (wl_proxy*)wl_registry_bind((wl_registry*)m_sWaylandConnection.registry->resource(), name, &zxdg_output_manager_v1_interface, std::min(version, 3u)));
 
         for (auto& output : m_vOutputs)
             setupXDGOutput(output.get());
-    } else if (INTERFACE == hyprland_toplevel_export_manager_v1_interface.name) {
-        m_sWaylandConnection.hyprlandToplevelMgr = makeShared<CCHyprlandToplevelExportManagerV1>(
-            (wl_proxy*)wl_registry_bind((wl_registry*)m_sWaylandConnection.registry->resource(), name, &hyprland_toplevel_export_manager_v1_interface, version));
+    } else if (INTERFACE == abyssland_toplevel_export_manager_v1_interface.name) {
+        m_sWaylandConnection.abysslandToplevelMgr = makeShared<CCAbysslandToplevelExportManagerV1>(
+            (wl_proxy*)wl_registry_bind((wl_registry*)m_sWaylandConnection.registry->resource(), name, &abyssland_toplevel_export_manager_v1_interface, version));
     }
 
     else if (INTERFACE == wl_output_interface.name) {
@@ -249,14 +249,14 @@ void CPortalManager::onGlobal(uint32_t name, const char* interface, uint32_t ver
     else if (INTERFACE == zwlr_foreign_toplevel_manager_v1_interface.name) {
         m_sHelpers.toplevel = std::make_unique<CToplevelManager>(name, version);
 
-        // remove when another fix is found for https://github.com/hyprwm/xdg-desktop-portal-hyprland/issues/147
-        if (!std::any_cast<Hyprlang::INT>(m_sConfig.config->getConfigValue("general:toplevel_dynamic_bind")))
+        // remove when another fix is found for https://github.com/AbyssWM/xdg-desktop-portal-abyss/issues/147
+        if (!std::any_cast<Abyssparse::INT>(m_sConfig.config->getConfigValue("general:toplevel_dynamic_bind")))
             m_sHelpers.toplevel->activate();
     }
 
-    else if (INTERFACE == hyprland_toplevel_mapping_manager_v1_interface.name) {
-        m_sHelpers.toplevelMapping = std::make_unique<CToplevelMappingManager>(makeShared<CCHyprlandToplevelMappingManagerV1>(
-            (wl_proxy*)wl_registry_bind((wl_registry*)m_sWaylandConnection.registry->resource(), name, &hyprland_toplevel_mapping_manager_v1_interface, version)));
+    else if (INTERFACE == abyssland_toplevel_mapping_manager_v1_interface.name) {
+        m_sHelpers.toplevelMapping = std::make_unique<CToplevelMappingManager>(makeShared<CCAbysslandToplevelMappingManagerV1>(
+            (wl_proxy*)wl_registry_bind((wl_registry*)m_sWaylandConnection.registry->resource(), name, &abyssland_toplevel_mapping_manager_v1_interface, version)));
     }
 }
 
@@ -268,7 +268,7 @@ void CPortalManager::init() {
     m_iPID = getpid();
 
     try {
-        m_pConnection = sdbus::createSessionBusConnection(sdbus::ServiceName{"org.freedesktop.impl.portal.desktop.hyprland"});
+        m_pConnection = sdbus::createSessionBusConnection(sdbus::ServiceName{"org.freedesktop.impl.portal.desktop.abyss"});
     } catch (std::exception& e) {
         Debug::log(CRIT, "Couldn't create the dbus connection ({})", e.what());
         exit(1);
@@ -290,8 +290,8 @@ void CPortalManager::init() {
     if (const auto ENV = getenv("XDG_CURRENT_DESKTOP"); ENV) {
         Debug::log(LOG, "XDG_CURRENT_DESKTOP set to {}", ENV);
 
-        if (std::string(ENV) != "Hyprland")
-            Debug::log(WARN, "Not running on hyprland, some features might be unavailable");
+        if (std::string(ENV) != "Abyssland")
+            Debug::log(WARN, "Not running on abyssland, some features might be unavailable");
     } else {
         Debug::log(WARN, "XDG_CURRENT_DESKTOP unset, running on an unknown desktop");
     }
@@ -315,8 +315,8 @@ void CPortalManager::init() {
 
     if (!m_sPortals.screencopy)
         Debug::log(WARN, "Screencopy not started: compositor doesn't support zwlr_screencopy_v1 or pw refused a loop");
-    else if (m_sWaylandConnection.hyprlandToplevelMgr)
-        m_sPortals.screencopy->appendToplevelExport(m_sWaylandConnection.hyprlandToplevelMgr);
+    else if (m_sWaylandConnection.abysslandToplevelMgr)
+        m_sPortals.screencopy->appendToplevelExport(m_sWaylandConnection.abysslandToplevelMgr);
 
     if (!inShellPath("grim"))
         Debug::log(WARN, "grim not found. Screenshots will not work.");
@@ -326,10 +326,10 @@ void CPortalManager::init() {
         if (!inShellPath("slurp"))
             Debug::log(WARN, "slurp not found. You won't be able to select a region when screenshotting.");
 
-        if (!inShellPath("slurp") && !inShellPath("hyprpicker"))
-            Debug::log(WARN, "Neither slurp nor hyprpicker found. You won't be able to pick colors.");
-        else if (!inShellPath("hyprpicker"))
-            Debug::log(INFO, "hyprpicker not found. We suggest to use hyprpicker for color picking to be less meh.");
+        if (!inShellPath("slurp") && !inShellPath("abysspicker"))
+            Debug::log(WARN, "Neither slurp nor abysspicker found. You won't be able to pick colors.");
+        else if (!inShellPath("abysspicker"))
+            Debug::log(INFO, "abysspicker not found. We suggest to use abysspicker for color picking to be less meh.");
     }
 
     wl_display_roundtrip(m_sWaylandConnection.display);

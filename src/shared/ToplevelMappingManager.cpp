@@ -2,7 +2,7 @@
 #include "../helpers/Log.hpp"
 #include <vector>
 
-CToplevelMappingManager::CToplevelMappingManager(SP<CCHyprlandToplevelMappingManagerV1> mgr) : m_pManager(mgr) {
+CToplevelMappingManager::CToplevelMappingManager(SP<CCAbysslandToplevelMappingManagerV1> mgr) : m_pManager(mgr) {
     Debug::log(LOG, "[toplevel mapping] registered manager");
 }
 
@@ -11,18 +11,18 @@ void CToplevelMappingManager::fetchWindowForToplevel(SP<CCZwlrForeignToplevelHan
         return;
 
     Debug::log(TRACE, "[toplevel mapping] fetching window for toplevel at {}", (void*)handle.get());
-    auto const HANDLE = makeShared<CCHyprlandToplevelWindowMappingHandleV1>(m_pManager->sendGetWindowForToplevelWlr(handle->resource()));
+    auto const HANDLE = makeShared<CCAbysslandToplevelWindowMappingHandleV1>(m_pManager->sendGetWindowForToplevelWlr(handle->resource()));
 
     m_vHandles.push_back(HANDLE);
 
-    HANDLE->setWindowAddress([this, handle](CCHyprlandToplevelWindowMappingHandleV1* h, uint32_t address_hi, uint32_t address) {
+    HANDLE->setWindowAddress([this, handle](CCAbysslandToplevelWindowMappingHandleV1* h, uint32_t address_hi, uint32_t address) {
         const auto ADDRESS = (uint64_t)address_hi << 32 | address;
         m_muAddresses.insert_or_assign(handle, ADDRESS);
         Debug::log(TRACE, "[toplevel mapping] mapped toplevel at {} to window {}", (void*)handle.get(), ADDRESS);
         std::erase_if(m_vHandles, [&](const auto& other) { return other.get() == h; });
     });
 
-    HANDLE->setFailed([this, handle](CCHyprlandToplevelWindowMappingHandleV1* h) {
+    HANDLE->setFailed([this, handle](CCAbysslandToplevelWindowMappingHandleV1* h) {
         Debug::log(TRACE, "[toplevel mapping] failed to map toplevel at {} to window", (void*)handle.get());
         std::erase_if(m_vHandles, [&](const auto& other) { return other.get() == h; });
     });

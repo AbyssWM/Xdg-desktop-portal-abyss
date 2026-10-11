@@ -12,8 +12,8 @@
 #include <fcntl.h>
 #include <uuid/uuid.h>
 
-#include <hyprutils/os/Process.hpp>
-using namespace Hyprutils::OS;
+#include <abyssutils/os/Process.hpp>
+using namespace Abyssutils::OS;
 
 std::string execAndGet(const char* cmd) {
     std::string command = cmd + std::string{" 2>&1"};
@@ -25,9 +25,9 @@ std::string execAndGet(const char* cmd) {
     return proc.stdOut();
 }
 
-void addHyprlandNotification(const std::string& icon, float timeMs, const std::string& color, const std::string& message) {
+void addAbysslandNotification(const std::string& icon, float timeMs, const std::string& color, const std::string& message) {
     // argv, never /bin/sh -c: `message` can carry untrusted text (e.g. an app_id) a shell would expand
-    CProcess proc("hyprctl", {"notify", icon, std::format("{}", timeMs), color, message});
+    CProcess proc("abyssctl", {"notify", icon, std::format("{}", timeMs), color, message});
     proc.runAsync();
 }
 

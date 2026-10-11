@@ -1,6 +1,6 @@
 #pragma once
 #include "../dbusDefines.hpp"
-#include "hyprland-input-capture-v1.hpp"
+#include "abyssland-input-capture-v1.hpp"
 #include "../includes.hpp"
 #include "../shared/Session.hpp"
 #include <sdbus-c++/Types.h>
@@ -25,12 +25,12 @@ const static sdbus::ObjectPath    OBJECT_PATH    = sdbus::ObjectPath{"/org/freed
 
 class CInputCapturePortal {
   public:
-    CInputCapturePortal(SP<CCHyprlandInputCaptureManagerV1> mgr);
+    CInputCapturePortal(SP<CCAbysslandInputCaptureManagerV1> mgr);
     void zonesChanged();
 
   private:
     struct {
-        SP<CCHyprlandInputCaptureManagerV1> manager;
+        SP<CCAbysslandInputCaptureManagerV1> manager;
     } m_sState;
 
     struct SSession {
@@ -46,7 +46,7 @@ class CInputCapturePortal {
         //
         std::unique_ptr<SDBusRequest>             request;
         std::unique_ptr<SDBusSession>             session;
-        std::unique_ptr<CCHyprlandInputCaptureV1> whandle;
+        std::unique_ptr<CCAbysslandInputCaptureV1> whandle;
     };
 
     std::unordered_map<std::string, const std::shared_ptr<SSession>> m_sessions;

@@ -1,12 +1,12 @@
 [Unit]
-Description=Portal service (Hyprland implementation)
+Description=Portal service (Abyssland implementation)
 PartOf=graphical-session.target
 After=graphical-session.target
 ConditionEnvironment=WAYLAND_DISPLAY
 
 [Service]
 Type=dbus
-BusName=org.freedesktop.impl.portal.desktop.hyprland
-ExecStart=@LIBEXECDIR@/xdg-desktop-portal-hyprland
+BusName=org.freedesktop.impl.portal.desktop.abyss
+ExecStart=@LIBEXECDIR@/xdg-desktop-portal-abyss
 Restart=on-failure
 Slice=session.slice

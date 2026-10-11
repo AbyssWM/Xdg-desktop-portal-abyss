@@ -1,54 +1,52 @@
-# xdg-desktop-portal-hyprland
+<div align="center">
 
-An [XDG Desktop Portal](https://github.com/flatpak/xdg-desktop-portal) backend
-for Hyprland.
+<img src="https://github.com/AbyssWM.png?size=200" width="160" alt="Abyss logo">
 
-## Installing
+# Xdg-desktop-portal-abyss
 
-First, make sure to install the required dependencies:
+**xdg-desktop-portal backend for Abyssland.**
 
-```
-gbm
-hyprland-protocols
-hyprlang
-hyprutils
-hyprwayland-scanner
-libdrm
-libpipewire-0.3
-libspa-0.2
-sdbus-cpp
-wayland-client
-wayland-protocols
-```
+Part of [**Abyss**](https://github.com/AbyssWM) · Based on [xdg-desktop-portal-hyprland](https://github.com/hyprwm/xdg-desktop-portal-hyprland) by [hyprwm](https://github.com/hyprwm)
 
-Then run the build and install command:
+</div>
 
-```sh
-git clone --recursive https://github.com/hyprwm/xdg-desktop-portal-hyprland
-cd xdg-desktop-portal-hyprland/
-cmake -DCMAKE_INSTALL_LIBEXECDIR=/usr/lib -DCMAKE_INSTALL_PREFIX=/usr -B build
-cmake --build build
-sudo cmake --install build
-```
+---
 
-## Nix
+> [!WARNING]
+> **Early development.** Abyss is being rebranded and reworked right now. Nothing is ready for daily use yet.
 
-> [!CAUTION]
-> XDPH should not be used from this flake directly!
-> 
-> Instead, use it from the [Hyprland flake](https://github.com/hyprwm/Hyprland).
+## About
 
-There are two reasons for the above:
+The desktop portal for Abyssland: screen sharing, screenshots, global shortcuts and more for sandboxed and regular apps.
 
-1. Hyprland depends on XDPH, but XDPH also depends on Hyprland. This results in
-   a cyclic dependency, which is a nightmare. To counter this, we use the
-   Nixpkgs Hyprland package in this flake, so that it can be later consumed by
-   the Hyprland flake while overriding the Hyprland package.
-2. Even if you manually do all the overriding, you may still get it wrong and
-   lose out on the Cachix cache (which has XDPH as exposed by the Hyprland
-   flake).
+Xdg-desktop-portal-abyss is a fork of [xdg-desktop-portal-hyprland](https://github.com/hyprwm/xdg-desktop-portal-hyprland). Every Abyss library and tool is forked and renamed, so the whole ecosystem builds and updates as one – independent of system packages.
 
-## Running, FAQs, etc.
+## The Abyss ecosystem
 
-See
-[the Hyprland wiki](https://wiki.hyprland.org/Hypr-Ecosystem/xdg-desktop-portal-hyprland/)
+| Repository | Based on |
+|---|---|
+| [Abyssland](https://github.com/AbyssWM/Abyssland) | [Hyprland](https://github.com/hyprwm/Hyprland) |
+| [Abyssal](https://github.com/AbyssWM/Abyssal) | [aquamarine](https://github.com/hyprwm/aquamarine) |
+| [Abyssutils](https://github.com/AbyssWM/Abyssutils) | [hyprutils](https://github.com/hyprwm/hyprutils) |
+| [Abyssparse](https://github.com/AbyssWM/Abyssparse) | [hyprlang](https://github.com/hyprwm/hyprlang) |
+| [Abysscursor](https://github.com/AbyssWM/Abysscursor) | [hyprcursor](https://github.com/hyprwm/hyprcursor) |
+| [Abyssgraphics](https://github.com/AbyssWM/Abyssgraphics) | [hyprgraphics](https://github.com/hyprwm/hyprgraphics) |
+| [Abysswire](https://github.com/AbyssWM/Abysswire) | [hyprwire](https://github.com/hyprwm/hyprwire) |
+| [Abyss-scanner](https://github.com/AbyssWM/Abyss-scanner) | [hyprwayland-scanner](https://github.com/hyprwm/hyprwayland-scanner) |
+| [Abyssland-protocols](https://github.com/AbyssWM/Abyssland-protocols) | [hyprland-protocols](https://github.com/hyprwm/hyprland-protocols) |
+| **Xdg-desktop-portal-abyss** | [xdg-desktop-portal-hyprland](https://github.com/hyprwm/xdg-desktop-portal-hyprland) |
+
+## Credits
+
+Xdg-desktop-portal-abyss exists thanks to **[xdg-desktop-portal-hyprland](https://github.com/hyprwm/xdg-desktop-portal-hyprland)**, created by **vaxerski & contributors** at **[hyprwm](https://github.com/hyprwm)**. All credit for the original work goes to them – please support the original project.
+
+Abyss is an independent project and is **not affiliated with or endorsed by hyprwm**.
+
+## License
+
+This project is licensed under the **BSD 3-Clause License**. The original copyright notice is kept in [`LICENSE`](LICENSE) as required.
+
+## Contributors
+
+- [bb8TheRobot](https://github.com/bb8TheRobot)
+- Claude (Anthropic) – AI pair programmer

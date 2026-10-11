@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=org.freedesktop.impl.portal.desktop.abyss
+Exec=@LIBEXECDIR@/xdg-desktop-portal-abyss
+SystemdService=xdg-desktop-portal-abyss.service

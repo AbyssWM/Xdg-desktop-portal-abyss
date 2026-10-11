@@ -1,20 +1,20 @@
 #pragma once
 
 #include <sdbus-c++/sdbus-c++.h>
-#include "hyprland-global-shortcuts-v1.hpp"
+#include "abyssland-global-shortcuts-v1.hpp"
 #include "../shared/Session.hpp"
 #include "../dbusDefines.hpp"
 
 struct SKeybind {
-    SKeybind(SP<CCHyprlandGlobalShortcutV1> shortcut);
+    SKeybind(SP<CCAbysslandGlobalShortcutV1> shortcut);
     std::string                    id, description, preferredTrigger;
-    SP<CCHyprlandGlobalShortcutV1> shortcut = nullptr;
+    SP<CCAbysslandGlobalShortcutV1> shortcut = nullptr;
     void*                          session  = nullptr;
 };
 
 class CGlobalShortcutsPortal {
   public:
-    CGlobalShortcutsPortal(SP<CCHyprlandGlobalShortcutsManagerV1> mgr);
+    CGlobalShortcutsPortal(SP<CCAbysslandGlobalShortcutsManagerV1> mgr);
 
     using DBusShortcut = sdbus::Struct<std::string, std::unordered_map<std::string, sdbus::Variant>>;
 
@@ -41,7 +41,7 @@ class CGlobalShortcutsPortal {
 
   private:
     struct {
-        SP<CCHyprlandGlobalShortcutsManagerV1> manager;
+        SP<CCAbysslandGlobalShortcutsManagerV1> manager;
     } m_sState;
 
     std::unique_ptr<sdbus::IObject> m_pObject;

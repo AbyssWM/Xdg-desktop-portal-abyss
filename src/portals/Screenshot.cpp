@@ -9,12 +9,12 @@
 std::string lastScreenshot;
 
 //
-static dbUasv pickHyprPicker(sdbus::ObjectPath requestHandle, std::string appID, std::string parentWindow, std::unordered_map<std::string, sdbus::Variant> options) {
-    const std::string HYPRPICKER_CMD = "hyprpicker --format=rgb --no-fancy";
-    std::string       rgbColor       = execAndGet(HYPRPICKER_CMD.c_str());
+static dbUasv pickAbyssPicker(sdbus::ObjectPath requestHandle, std::string appID, std::string parentWindow, std::unordered_map<std::string, sdbus::Variant> options) {
+    const std::string ABYSSPICKER_CMD = "abysspicker --format=rgb --no-fancy";
+    std::string       rgbColor       = execAndGet(ABYSSPICKER_CMD.c_str());
 
     if (rgbColor.size() > 12) {
-        Debug::log(ERR, "hyprpicker returned strange output: " + rgbColor);
+        Debug::log(ERR, "abysspicker returned strange output: " + rgbColor);
         return {1, {}};
     }
 
@@ -25,7 +25,7 @@ static dbUasv pickHyprPicker(sdbus::ObjectPath requestHandle, std::string appID,
             uint64_t next = rgbColor.find(' ');
 
             if (next == std::string::npos) {
-                Debug::log(ERR, "hyprpicker returned strange output: " + rgbColor);
+                Debug::log(ERR, "abysspicker returned strange output: " + rgbColor);
                 return {1, {}};
             }
 
@@ -34,7 +34,7 @@ static dbUasv pickHyprPicker(sdbus::ObjectPath requestHandle, std::string appID,
         }
         colors[2] = std::stoi(rgbColor);
     } catch (...) {
-        Debug::log(ERR, "Reading RGB values from hyprpicker failed. This is likely a string to integer error.");
+        Debug::log(ERR, "Reading RGB values from abysspicker failed. This is likely a string to integer error.");
         return {1, {}};
     }
 
@@ -121,9 +121,9 @@ dbUasv CScreenshotPortal::onScreenshot(sdbus::ObjectPath requestHandle, std::str
     const auto RUNTIME_DIR = getenv("XDG_RUNTIME_DIR");
     srand(time(nullptr));
 
-    const std::string                               HYPR_DIR             = RUNTIME_DIR ? std::string{RUNTIME_DIR} + "/hypr/" : "/tmp/hypr/";
+    const std::string                               ABYSS_DIR             = RUNTIME_DIR ? std::string{RUNTIME_DIR} + "/abyss/" : "/tmp/abyss/";
     const std::string                               SNAP_FILE            = std::format("xdph_screenshot_{:x}.png", rand()); // rand() is good enough
-    const std::string                               FILE_PATH            = HYPR_DIR + SNAP_FILE;
+    const std::string                               FILE_PATH            = ABYSS_DIR + SNAP_FILE;
     const std::string                               SNAP_CMD             = "grim '" + FILE_PATH + "'";
     const std::string                               SNAP_INTERACTIVE_CMD = "grim -g \"$(slurp)\" '" + FILE_PATH + "'";
 
@@ -131,7 +131,7 @@ dbUasv CScreenshotPortal::onScreenshot(sdbus::ObjectPath requestHandle, std::str
     results["uri"] = sdbus::Variant{"file://" + FILE_PATH};
 
     std::filesystem::remove(FILE_PATH);
-    std::filesystem::create_directory(HYPR_DIR);
+    std::filesystem::create_directory(ABYSS_DIR);
 
     // remove last screenshot. This could cause issues if the app hasn't read the screenshot back yet, but oh well.
     if (!lastScreenshot.empty())
@@ -154,17 +154,17 @@ dbUasv CScreenshotPortal::onPickColor(sdbus::ObjectPath requestHandle, std::stri
     Debug::log(LOG, "[screenshot]  | {}", requestHandle.c_str());
     Debug::log(LOG, "[screenshot]  | appid: {}", appID);
 
-    bool hyprPickerInstalled = inShellPath("hyprpicker");
+    bool abyssPickerInstalled = inShellPath("abysspicker");
     bool slurpInstalled      = inShellPath("slurp");
 
-    if (!slurpInstalled && !hyprPickerInstalled) {
-        Debug::log(ERR, "Neither slurp nor hyprpicker found. We can't pick colors.");
+    if (!slurpInstalled && !abyssPickerInstalled) {
+        Debug::log(ERR, "Neither slurp nor abysspicker found. We can't pick colors.");
         return {1, {}};
     }
 
-    // use hyprpicker if installed, slurp as fallback
-    if (hyprPickerInstalled)
-        return pickHyprPicker(requestHandle, appID, parentWindow, options);
+    // use abysspicker if installed, slurp as fallback
+    if (abyssPickerInstalled)
+        return pickAbyssPicker(requestHandle, appID, parentWindow, options);
     else
         return pickSlurp(requestHandle, appID, parentWindow, options);
 }

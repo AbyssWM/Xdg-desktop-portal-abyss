@@ -14,10 +14,10 @@ sources = files([
   'elidedbutton.cpp',
 ])
 
-executable('hyprland-share-picker',
+executable('abyssland-share-picker',
   sources,
   ui_files,
   moc,
-  dependencies: [qtdep, dependency('hyprutils')],
+  dependencies: [qtdep, dependency('abyssutils')],
   install: true
 )

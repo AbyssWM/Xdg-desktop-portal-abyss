@@ -1,10 +1,10 @@
 #pragma once
 
 #include "wlr-screencopy-unstable-v1.hpp"
-#include "hyprland-toplevel-export-v1.hpp"
+#include "abyssland-toplevel-export-v1.hpp"
 #include <cstdint>
-#include <hyprutils/memory/UniquePtr.hpp>
-#include <hyprutils/memory/WeakPtr.hpp>
+#include <abyssutils/memory/UniquePtr.hpp>
+#include <abyssutils/memory/WeakPtr.hpp>
 #include <sdbus-c++/sdbus-c++.h>
 #include "../shared/ScreencopyShared.hpp"
 #include <gbm.h>
@@ -57,7 +57,7 @@ class CScreencopyPortal {
   public:
     CScreencopyPortal(SP<CCZwlrScreencopyManagerV1>);
 
-    void   appendToplevelExport(SP<CCHyprlandToplevelExportManagerV1>);
+    void   appendToplevelExport(SP<CCAbysslandToplevelExportManagerV1>);
 
     dbUasv onCreateSession(sdbus::ObjectPath requestHandle, sdbus::ObjectPath sessionHandle, std::string appID, std::unordered_map<std::string, sdbus::Variant> opts);
     dbUasv onSelectSources(sdbus::ObjectPath requestHandle, sdbus::ObjectPath sessionHandle, std::string appID, std::unordered_map<std::string, sdbus::Variant> opts);
@@ -73,7 +73,7 @@ class CScreencopyPortal {
         std::unique_ptr<SDBusRequest>             request;
         std::unique_ptr<SDBusSession>             session;
         SSelectionData                            selection;
-        Hyprutils::Memory::CWeakPointer<SSession> self;
+        Abyssutils::Memory::CWeakPointer<SSession> self;
 
         void                                      startCopy();
         void                                      initCallbacks();
@@ -81,7 +81,7 @@ class CScreencopyPortal {
         struct {
             bool                                  active              = false;
             SP<CCZwlrScreencopyFrameV1>           frameCallback       = nullptr;
-            SP<CCHyprlandToplevelExportFrameV1>   windowFrameCallback = nullptr;
+            SP<CCAbysslandToplevelExportFrameV1>   windowFrameCallback = nullptr;
             frameStatus                           status              = FRAME_NONE;
             uint64_t                              tvSec               = 0;
             uint32_t                              tvNsec              = 0;
@@ -120,14 +120,14 @@ class CScreencopyPortal {
   private:
     std::unique_ptr<sdbus::IObject>                          m_pObject;
 
-    std::vector<Hyprutils::Memory::CUniquePointer<SSession>> m_vSessions;
+    std::vector<Abyssutils::Memory::CUniquePointer<SSession>> m_vSessions;
 
     SSession*                                                getSession(sdbus::ObjectPath& path);
     void                                                     startSharing(SSession* pSession);
 
     struct {
         SP<CCZwlrScreencopyManagerV1>         screencopy = nullptr;
-        SP<CCHyprlandToplevelExportManagerV1> toplevel   = nullptr;
+        SP<CCAbysslandToplevelExportManagerV1> toplevel   = nullptr;
     } m_sState;
 
     const sdbus::InterfaceName INTERFACE_NAME = sdbus::InterfaceName{"org.freedesktop.impl.portal.ScreenCast"};
