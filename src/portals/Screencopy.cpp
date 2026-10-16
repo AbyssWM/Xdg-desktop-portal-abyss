@@ -221,7 +221,9 @@ dbUasv CScreencopyPortal::onStart(sdbus::ObjectPath requestHandle, sdbus::Object
 
     std::unordered_map<std::string, sdbus::Variant> options;
 
-    if (PSESSION->selection.allowToken) {
+    const uint32_t                                  PERSISTMODE = PSESSION->selection.allowToken ? PSESSION->persistMode : 0;
+    options["persist_mode"]                                     = sdbus::Variant{PERSISTMODE};
+    if (PERSISTMODE != 0) {
         // give them a token :)
         if (PSESSION->selection.type == TYPE_WINDOW && PSESSION->selection.windowHandle) {
             for (auto& tl : g_pPortalManager->m_sHelpers.toplevel->m_vToplevels) {
@@ -234,7 +236,6 @@ dbUasv CScreencopyPortal::onStart(sdbus::ObjectPath requestHandle, sdbus::Object
             }
         }
         options["restore_data"] = sdbus::Variant{getFullRestoreStruct(PSESSION->selection, PSESSION->cursorMode)};
-        options["persist_mode"] = sdbus::Variant{uint32_t{2}};
 
         Debug::log(LOG, "[screencopy] Sent restore token to {}", PSESSION->sessionHandle.c_str());
     }
@@ -988,12 +989,13 @@ void CPipewireConnection::createStream(CScreencopyPortal::SSession* pSession) {
     const spa_pod*   params[2];
     const auto       PARAMCOUNT = buildFormatsFor(builder, params, PSTREAM);
 
-    spa_pod_dynamic_builder_clean(&dynBuilder[0]);
-    spa_pod_dynamic_builder_clean(&dynBuilder[1]);
-
     pw_stream_add_listener(PSTREAM->stream, &PSTREAM->streamListener, &pwStreamEvents, PSTREAM);
 
     pw_stream_connect(PSTREAM->stream, PW_DIRECTION_OUTPUT, PW_ID_ANY, (pw_stream_flags)(PW_STREAM_FLAG_DRIVER | PW_STREAM_FLAG_ALLOC_BUFFERS), params, PARAMCOUNT);
+
+    // params may reference heap storage owned by the dynamic builders.
+    spa_pod_dynamic_builder_clean(&dynBuilder[0]);
+    spa_pod_dynamic_builder_clean(&dynBuilder[1]);
 
     pSession->sharingData.nodeID         = pw_stream_get_node_id(PSTREAM->stream);
     pSession->sharingData.pipewireSerial = readObjectSerial(PSTREAM->stream);
@@ -1073,6 +1075,10 @@ static bool build_modifierlist(CPipewireConnection::SPWStream* stream, uint32_t 
         return true;
     }
     *modifiers = (uint64_t*)calloc(*modifier_count, sizeof(uint64_t));
+    if (!*modifiers) {
+        *modifier_count = 0;
+        return false;
+    }
     bool ret   = wlr_query_dmabuf_modifiers(drm_format, *modifier_count, *modifiers, modifier_count);
     Debug::log(TRACE, "[pw] build_modifierlist: count {}", *modifier_count);
     return ret;

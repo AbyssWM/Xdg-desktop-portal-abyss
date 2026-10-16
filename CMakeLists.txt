@@ -93,6 +93,8 @@ if(BUILD_TESTING)
   add_executable(restore_match_test tests/restore_match_test.cpp src/shared/RestoreMatch.cpp)
   add_executable(picker_data_test tests/picker_data_test.cpp src/shared/PickerData.cpp)
   add_executable(restore_data_test tests/restore_data_test.cpp src/shared/RestoreData.cpp)
+  add_executable(desktop_identity_test tests/desktop_identity_test.cpp src/helpers/MiscFunctions.cpp)
+  target_link_libraries(desktop_identity_test PRIVATE PkgConfig::deps PkgConfig::SDBUS)
   add_executable(picker_gui_test tests/picker_gui_test.cpp src/shared/PickerData.cpp
                  abyssland-share-picker/mainpicker.cpp abyssland-share-picker/mainpicker.h
                  abyssland-share-picker/mainpicker.ui abyssland-share-picker/elidedbutton.cpp)
@@ -102,6 +104,7 @@ if(BUILD_TESTING)
   add_test(NAME restore_match COMMAND restore_match_test)
   add_test(NAME picker_data COMMAND picker_data_test)
   add_test(NAME restore_data COMMAND restore_data_test)
+  add_test(NAME desktop_identity COMMAND desktop_identity_test)
   add_test(NAME picker_gui COMMAND picker_gui_test)
 endif()
 

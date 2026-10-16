@@ -70,3 +70,7 @@ inc = include_directories('.', 'protocols')
 subdir('protocols')
 subdir('src')
 subdir('abyssland-share-picker')
+
+if get_option('tests')
+  subdir('tests')
+endif

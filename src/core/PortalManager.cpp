@@ -290,7 +290,7 @@ void CPortalManager::init() {
     if (const auto ENV = getenv("XDG_CURRENT_DESKTOP"); ENV) {
         Debug::log(LOG, "XDG_CURRENT_DESKTOP set to {}", ENV);
 
-        if (std::string(ENV) != "Abyssland")
+        if (!desktopListContains(ENV, "Abyssland"))
             Debug::log(WARN, "Not running on abyssland, some features might be unavailable");
     } else {
         Debug::log(WARN, "XDG_CURRENT_DESKTOP unset, running on an unknown desktop");
@@ -340,7 +340,8 @@ void CPortalManager::init() {
 void CPortalManager::startEventLoop() {
     addFdToEventLoop(m_pConnection->getEventLoopPollData().fd, POLLIN, nullptr);
     addFdToEventLoop(wl_display_get_fd(m_sWaylandConnection.display), POLLIN, nullptr);
-    addFdToEventLoop(pw_loop_get_fd(m_sPipewire.loop), POLLIN, nullptr);
+    // Keep the PipeWire poll slot even when loop creation failed; poll ignores -1.
+    addFdToEventLoop(m_sPipewire.loop ? pw_loop_get_fd(m_sPipewire.loop) : -1, POLLIN, nullptr);
 
     std::thread pollThr([this]() {
         while (1) {
@@ -444,7 +445,7 @@ void CPortalManager::startEventLoop() {
             }
         }
 
-        if (m_sEventLoopInternals.pollFds[2].revents & POLLIN /* pw */) {
+        if (m_sPipewire.loop && (m_sEventLoopInternals.pollFds[2].revents & POLLIN) /* pw */) {
             while (pw_loop_iterate(m_sPipewire.loop, 0) != 0) {
                 ;
             }
@@ -487,7 +488,8 @@ void CPortalManager::startEventLoop() {
     m_sPortals.inputCapture.reset();
 
     m_pConnection.reset();
-    pw_loop_destroy(m_sPipewire.loop);
+    if (m_sPipewire.loop)
+        pw_loop_destroy(m_sPipewire.loop);
     wl_display_disconnect(m_sWaylandConnection.display);
 
     m_sTimersThread.thread.release();

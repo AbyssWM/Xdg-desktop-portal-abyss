@@ -59,6 +59,20 @@ bool inShellPath(const std::string& exec) {
     return std::ranges::any_of(paths, [&exec](std::string& path) { return access((path + "/" + exec).c_str(), X_OK) == 0; });
 }
 
+bool desktopListContains(std::string_view desktops, std::string_view desktop) {
+    if (desktop.empty())
+        return false;
+    while (!desktops.empty()) {
+        const auto END = desktops.find(':');
+        if (desktops.substr(0, END) == desktop)
+            return true;
+        if (END == std::string_view::npos)
+            break;
+        desktops.remove_prefix(END + 1);
+    }
+    return false;
+}
+
 std::string getRandomUUID() {
     std::string uuid;
     uuid_t      uuid_;

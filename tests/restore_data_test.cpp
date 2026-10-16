@@ -59,6 +59,7 @@ int main() {
     const auto legacy = RestoreData::decode(sdbus::Variant{RestoreData::Token{"abyssland", 2, sdbus::Variant{Legacy{"old", 0, "DP-1", true, 1}}}});
     CHECK("v2 monitor compatibility", legacy && legacy->output == "DP-1" && legacy->cursorMode == 2);
     CHECK("v2 transient window address prompts", !RestoreData::decode(sdbus::Variant{RestoreData::Token{"abyssland", 2, sdbus::Variant{Legacy{"old", 123, "", false, 1}}}}));
+    CHECK("v2 mixed window/output token prompts", !RestoreData::decode(sdbus::Variant{RestoreData::Token{"abyssland", 2, sdbus::Variant{Legacy{"old", 123, "DP-1", false, 1}}}}));
     CHECK("malformed v2 ignored", !RestoreData::decode(sdbus::Variant{RestoreData::Token{"abyssland", 2, sdbus::Variant{std::string{"bad"}}}}));
     return fails;
 }

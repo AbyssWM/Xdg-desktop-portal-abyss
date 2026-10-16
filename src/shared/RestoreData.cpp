@@ -14,6 +14,8 @@ std::optional<RestoreData::SData> RestoreData::decode(const sdbus::Variant& toke
         if (TOKEN.get<1>() == 2) {
             const auto LEGACY = TOKEN.get<2>().get<sdbus::Struct<std::string, uint32_t, std::string, bool, uint64_t>>();
             // Old window tokens contain only a transient address; only outputs can restore.
+            if (LEGACY.get<1>() != 0)
+                return std::nullopt;
             result.output     = LEGACY.get<2>();
             result.cursorMode = LEGACY.get<3>() ? 2 : 1;
         } else if (TOKEN.get<1>() == 3) {
