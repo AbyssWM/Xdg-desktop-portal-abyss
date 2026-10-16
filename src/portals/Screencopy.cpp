@@ -1079,19 +1079,20 @@ static bool build_modifierlist(CPipewireConnection::SPWStream* stream, uint32_t 
 }
 
 uint32_t CPipewireConnection::buildFormatsFor(spa_pod_builder* b[2], const spa_pod* params[2], CPipewireConnection::SPWStream* stream) {
-    uint32_t            paramCount = 0;
-    uint32_t            modCount   = 0;
-    uint64_t*           modifiers  = nullptr;
+    uint32_t            paramCount   = 0;
+    uint32_t            modCount     = 0;
+    uint64_t*           modifiersRaw = nullptr;
 
     static auto* const* PFORCESHM = (Abyssparse::INT* const*)g_pPortalManager->m_sConfig.config->getConfigValuePtr("screencopy:force_shm")->getDataStaticPtr();
     const bool          forceSHM  = **PFORCESHM || stream->dmaBufFailed;
 
-    if (!forceSHM && build_modifierlist(stream, stream->pSession->sharingData.frameInfoDMA.fmt, &modifiers, &modCount) && modCount > 0) {
+    if (!forceSHM && build_modifierlist(stream, stream->pSession->sharingData.frameInfoDMA.fmt, &modifiersRaw, &modCount) && modCount > 0) {
+        std::unique_ptr<uint64_t, decltype(&free)> modifiers(modifiersRaw, free);
         Debug::log(LOG, "[pw] Building modifiers for dma");
 
         paramCount = 2;
         params[0]  = build_format(b[0], pwFromDrmFourcc(stream->pSession->sharingData.frameInfoDMA.fmt), stream->pSession->sharingData.frameInfoDMA.w,
-                                  stream->pSession->sharingData.frameInfoDMA.h, stream->pSession->sharingData.framerate, modifiers, modCount);
+                                  stream->pSession->sharingData.frameInfoDMA.h, stream->pSession->sharingData.framerate, modifiers.get(), modCount);
         assert(params[0] != NULL);
         params[1] = build_format(b[1], pwFromDrmFourcc(stream->pSession->sharingData.frameInfoSHM.fmt), stream->pSession->sharingData.frameInfoSHM.w,
                                  stream->pSession->sharingData.frameInfoSHM.h, stream->pSession->sharingData.framerate, NULL, 0);
@@ -1108,9 +1109,6 @@ uint32_t CPipewireConnection::buildFormatsFor(spa_pod_builder* b[2], const spa_p
         params[0]  = build_format(b[0], pwFromDrmFourcc(stream->pSession->sharingData.frameInfoSHM.fmt), stream->pSession->sharingData.frameInfoSHM.w,
                                   stream->pSession->sharingData.frameInfoSHM.h, stream->pSession->sharingData.framerate, NULL, 0);
     }
-
-    if (modifiers)
-        free(modifiers);
 
     return paramCount;
 }

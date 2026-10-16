@@ -35,8 +35,7 @@ std::string execAndGet(const char* cmd) {
 QApplication* pickerPtr     = nullptr;
 MainPicker*   mainPickerPtr = nullptr;
 
-
-int main(int argc, char* argv[]) {
+int           main(int argc, char* argv[]) {
     qputenv("QT_LOGGING_RULES", "qml=false");
 
     bool allowTokenByDefault = false;
@@ -83,8 +82,8 @@ int main(int argc, char* argv[]) {
         const auto    GEOMETRY = SCREENS[i]->geometry();
 
         QString       text = QString::fromStdString(std::string("Screen " + std::to_string(i) + " at " + std::to_string(GEOMETRY.x()) + ", " + std::to_string(GEOMETRY.y()) + " (" +
-                                                                std::to_string(GEOMETRY.width()) + "x" + std::to_string(GEOMETRY.height()) + ") (") +
-                                                    SCREENS[i]->name().toStdString() + ")");
+                                                                          std::to_string(GEOMETRY.width()) + "x" + std::to_string(GEOMETRY.height()) + ") (") +
+                                                              SCREENS[i]->name().toStdString() + ")");
         QString       outputName = SCREENS[i]->name();
         ElidedButton* button     = new ElidedButton(text);
         button->setMinimumSize(0, BUTTON_HEIGHT);

@@ -44,8 +44,8 @@ class CInputCapturePortal {
         std::unordered_map<uint32_t, uint32_t> barrierIdMap;
 
         //
-        std::unique_ptr<SDBusRequest>             request;
-        std::unique_ptr<SDBusSession>             session;
+        std::unique_ptr<SDBusRequest>              request;
+        std::unique_ptr<SDBusSession>              session;
         std::unique_ptr<CCAbysslandInputCaptureV1> whandle;
     };
 

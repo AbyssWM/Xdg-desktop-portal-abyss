@@ -115,7 +115,7 @@ void CPortalManager::onGlobal(uint32_t name, const char* interface, uint32_t ver
                                  .emplace_back(std::make_unique<SOutput>(makeShared<CCWlOutput>(
                                      (wl_proxy*)wl_registry_bind((wl_registry*)m_sWaylandConnection.registry->resource(), name, &wl_output_interface, version))))
                                  .get();
-        POUTPUT->id        = name;
+        POUTPUT->id = name;
         setupXDGOutput(POUTPUT);
     }
 
@@ -532,23 +532,23 @@ static char* gbm_find_render_node(drmDevice* device) {
 }
 
 gbm_device* CPortalManager::createGBMDevice(drmDevice* dev) {
-    char* renderNode = gbm_find_render_node(dev);
+    char* renderNodeRaw = gbm_find_render_node(dev);
 
-    if (!renderNode) {
+    if (!renderNodeRaw) {
         Debug::log(ERR, "[core] Couldn't find a render node");
         return nullptr;
     }
 
-    Debug::log(TRACE, "[core] createGBMDevice: render node {}", renderNode);
+    std::unique_ptr<char, decltype(&free)> renderNode(renderNodeRaw, free);
 
-    int fd = open(renderNode, O_RDWR | O_CLOEXEC);
+    Debug::log(TRACE, "[core] createGBMDevice: render node {}", renderNode.get());
+
+    int fd = open(renderNode.get(), O_RDWR | O_CLOEXEC);
     if (fd < 0) {
         Debug::log(ERR, "[core] couldn't open render node");
-        free(renderNode);
         return NULL;
     }
 
-    free(renderNode);
     return gbm_create_device(fd);
 }
 

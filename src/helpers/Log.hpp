@@ -17,7 +17,7 @@ enum eLogLevel {
         Debug::log(CRIT, "\n==========================================================================================\nASSERTION FAILED! \n\n{}\n\nat: line {} in {}",            \
                    std::format(reason, ##__VA_ARGS__), __LINE__,                                                                                                                   \
                    ([]() constexpr -> std::string { return std::string(__FILE__).substr(std::string(__FILE__).find_last_of('/') + 1); })().c_str());                               \
-        printf("Assertion failed! See the log in /tmp/abyss/abyssland.log for more info.");                                                                                          \
+        printf("Assertion failed! See the log in /tmp/abyss/abyssland.log for more info.");                                                                                        \
         abort(); /* so that we crash and get a coredump */                                                                                                                         \
     }
 

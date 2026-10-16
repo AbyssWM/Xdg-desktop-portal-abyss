@@ -14,10 +14,10 @@ class CToplevelMappingManager {
     uint64_t getWindowForToplevel(SP<CCZwlrForeignToplevelHandleV1> handle);
 
   private:
-    SP<CCAbysslandToplevelMappingManagerV1>                          m_pManager = nullptr;
+    SP<CCAbysslandToplevelMappingManagerV1>                         m_pManager = nullptr;
 
     std::unordered_map<SP<CCZwlrForeignToplevelHandleV1>, uint64_t> m_muAddresses;
-    std::vector<SP<CCAbysslandToplevelWindowMappingHandleV1>>        m_vHandles;
+    std::vector<SP<CCAbysslandToplevelWindowMappingHandleV1>>       m_vHandles;
     void                                                            fetchWindowForToplevel(SP<CCZwlrForeignToplevelHandleV1> handle);
 
     friend struct SToplevelHandle;

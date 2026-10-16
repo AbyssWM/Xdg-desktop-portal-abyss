@@ -88,15 +88,15 @@ class CPortalManager {
     } m_sHelpers;
 
     struct {
-        wl_display*                           display = nullptr;
-        SP<CCWlRegistry>                      registry;
+        wl_display*                            display = nullptr;
+        SP<CCWlRegistry>                       registry;
         SP<CCAbysslandToplevelExportManagerV1> abysslandToplevelMgr;
-        SP<CCZwpLinuxDmabufV1>                linuxDmabuf;
-        SP<CCZwpLinuxDmabufFeedbackV1>        linuxDmabufFeedback;
-        SP<CCZxdgOutputManagerV1>             xdgOutputManager;
-        SP<CCWlShm>                           shm;
-        gbm_bo*                               gbm       = nullptr;
-        gbm_device*                           gbmDevice = nullptr;
+        SP<CCZwpLinuxDmabufV1>                 linuxDmabuf;
+        SP<CCZwpLinuxDmabufFeedbackV1>         linuxDmabufFeedback;
+        SP<CCZxdgOutputManagerV1>              xdgOutputManager;
+        SP<CCWlShm>                            shm;
+        gbm_bo*                                gbm       = nullptr;
+        gbm_device*                            gbmDevice = nullptr;
         struct {
             void*  formatTable     = nullptr;
             size_t formatTableSize = 0;

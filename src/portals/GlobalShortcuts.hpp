@@ -7,9 +7,9 @@
 
 struct SKeybind {
     SKeybind(SP<CCAbysslandGlobalShortcutV1> shortcut);
-    std::string                    id, description, preferredTrigger;
+    std::string                     id, description, preferredTrigger;
     SP<CCAbysslandGlobalShortcutV1> shortcut = nullptr;
-    void*                          session  = nullptr;
+    void*                           session  = nullptr;
 };
 
 class CGlobalShortcutsPortal {

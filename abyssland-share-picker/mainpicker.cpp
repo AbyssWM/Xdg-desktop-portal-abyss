@@ -2,15 +2,11 @@
 #include "./ui_mainpicker.h"
 #include <QDebug>
 
-MainPicker::MainPicker(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainPicker)
-{
+MainPicker::MainPicker(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainPicker) {
     ui->setupUi(this);
 }
 
-MainPicker::~MainPicker()
-{
+MainPicker::~MainPicker() {
     delete ui;
 }
 
