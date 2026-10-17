@@ -58,7 +58,7 @@ pkg_check_modules(
   REQUIRED
   IMPORTED_TARGET
   wayland-client
-  wayland-protocols
+  wayland-protocols>=1.31
   libpipewire-0.3>=1.1.82
   libspa-0.2
   libdrm
@@ -77,7 +77,7 @@ if(NOT SDBUS_FOUND)
 endif()
 
 # same for abyssland-protocols
-pkg_check_modules(ABYSSLAND_PROTOS IMPORTED_TARGET abyssland-protocols)
+pkg_check_modules(ABYSSLAND_PROTOS IMPORTED_TARGET abyssland-protocols>=0.7.0)
 if(ABYSSLAND_PROTOS_FOUND)
   pkg_get_variable(ABYSSLAND_PROTOCOLS abyssland-protocols pkgdatadir)
 else()
