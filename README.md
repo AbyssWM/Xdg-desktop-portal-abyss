@@ -29,9 +29,20 @@ The picker executable is `abyss-share-picker` (the source directory remains `aby
 
 Window restore data stores the application ID and title. Matching uses the application ID without case sensitivity and title scoring when several windows match; ambiguous matches open the picker. New tokens contain no process addresses. Existing version 3 addresses are ignored, and version 2 monitor tokens remain supported. Invalid or foreign restore data opens the picker.
 
+## Configuration
+
+The portal currently reads `$XDG_CONFIG_HOME/abyss/xdph.conf`, or
+`~/.config/abyss/xdph.conf` when `XDG_CONFIG_HOME` is unset. Start with
+[`contrib/config.sample`](contrib/config.sample), which lists the supported
+options with their defaults using the current Abyssparse syntax. The planned
+compiled C++ configuration system is not yet integrated into this backend.
+
 ## Tests
 
 Configure with `-DBUILD_TESTING=ON`, build, then run `ctest --test-dir build --output-on-failure`. The tests cover restore matching, typed D-Bus token round trips, malformed picker data, and the real Qt window button and restore checkbox using the offscreen platform. They do not verify PipeWire frames or restoration across a live compositor restart.
+
+This repository currently has no maintained CI workflow. The inherited SourceHut
+manifests targeted a different project and have been retired.
 
 ## The Abyss ecosystem
 

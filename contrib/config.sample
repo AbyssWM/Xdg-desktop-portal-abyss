@@ -1,5 +1,14 @@
-[screencast]
-output_name=
-max_fps=30
-chooser_cmd=slurp -f %o -or
-chooser_type=simple
+# Current portal config: $XDG_CONFIG_HOME/abyss/xdph.conf
+# Falls back to ~/.config/abyss/xdph.conf when XDG_CONFIG_HOME is unset.
+
+general {
+    toplevel_dynamic_bind = 0
+}
+
+screencopy {
+    max_fps = 120
+    allow_token_by_default = 0
+    custom_picker_binary =
+    force_shm = 0
+    cursor_mode = 0
+}
