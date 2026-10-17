@@ -79,7 +79,7 @@ endif()
 # same for abyssland-protocols
 pkg_check_modules(ABYSSLAND_PROTOS IMPORTED_TARGET abyssland-protocols)
 if(ABYSSLAND_PROTOS_FOUND)
-  set(ABYSSLAND_PROTOCOLS "${ABYSSLAND_PROTOS_PREFIX}/share/abyssland-protocols")
+  pkg_get_variable(ABYSSLAND_PROTOCOLS abyssland-protocols pkgdatadir)
 else()
   set(ABYSSLAND_PROTOCOLS "${CMAKE_SOURCE_DIR}/subprojects/abyssland-protocols")
 endif()
