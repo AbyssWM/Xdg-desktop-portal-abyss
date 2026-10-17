@@ -3,6 +3,7 @@
 #include "../core/PortalManager.hpp"
 #include "../helpers/Log.hpp"
 #include "../shared/Session.hpp"
+#include "../shared/InputCaptureGeometry.hpp"
 #include "abyssland-input-capture-v1.hpp"
 #include <algorithm>
 #include <cmath>
@@ -10,7 +11,6 @@
 #include <abyssutils/memory/UniquePtr.hpp>
 #include <memory>
 #include <sdbus-c++/Error.h>
-#include <set>
 #include <sdbus-c++/Types.h>
 #include <sdbus-c++/VTableItems.h>
 #include <string>
@@ -61,135 +61,13 @@ static SLogicalOutputGeometry getLogicalGeometry(const std::unique_ptr<SOutput>&
     };
 }
 
-static bool rangeContains(int start, int end, int value) {
-    return start <= value && value <= end;
-}
-
-static bool intervalOverlapsInclusive(int a1, int a2, int b1, int b2) {
-    return std::max(a1, b1) <= std::min(a2, b2);
-}
-
-static bool isVerticalBarrierOnExteriorBoundary(int x, int y1, int y2) {
-    std::set<int> breakpoints = {y1, y2 + 1};
-
+static bool isBarrierValid(int32_t x1, int32_t y1, int32_t x2, int32_t y2) {
+    std::vector<InputCaptureGeometry::SOutputGeometry> outputs;
     for (const auto& output : g_pPortalManager->getAllOutputs()) {
         const auto logical = getLogicalGeometry(output);
-        if (logical.width <= 0 || logical.height <= 0)
-            return false;
-
-        const int top    = logical.y;
-        const int bottom = logical.y + logical.height - 1;
-        if (!intervalOverlapsInclusive(y1, y2, top, bottom))
-            continue;
-
-        if (x == logical.x || x == logical.x + logical.width) {
-            breakpoints.insert(std::max(y1, top));
-            breakpoints.insert(std::min(y2, bottom) + 1);
-        }
+        outputs.push_back({logical.x, logical.y, logical.width, logical.height});
     }
-
-    const std::vector<int> points{breakpoints.begin(), breakpoints.end()};
-    for (size_t i = 0; i + 1 < points.size(); ++i) {
-        const int segmentStart = points[i];
-        const int segmentEnd   = points[i + 1] - 1;
-        if (segmentStart > segmentEnd)
-            continue;
-
-        bool hasLeftMonitor  = false;
-        bool hasRightMonitor = false;
-        for (const auto& output : g_pPortalManager->getAllOutputs()) {
-            const auto logical = getLogicalGeometry(output);
-            if (logical.width <= 0 || logical.height <= 0)
-                return false;
-
-            const int top    = logical.y;
-            const int bottom = logical.y + logical.height - 1;
-            if (!intervalOverlapsInclusive(segmentStart, segmentEnd, top, bottom))
-                continue;
-
-            if (x == logical.x + logical.width && rangeContains(top, bottom, segmentStart))
-                hasLeftMonitor = true;
-
-            if (x == logical.x && rangeContains(top, bottom, segmentStart))
-                hasRightMonitor = true;
-        }
-
-        if (hasLeftMonitor == hasRightMonitor)
-            return false;
-    }
-
-    return true;
-}
-
-static bool isHorizontalBarrierOnExteriorBoundary(int y, int x1, int x2) {
-    std::set<int> breakpoints = {x1, x2 + 1};
-
-    for (const auto& output : g_pPortalManager->getAllOutputs()) {
-        const auto logical = getLogicalGeometry(output);
-        if (logical.width <= 0 || logical.height <= 0)
-            return false;
-
-        const int left  = logical.x;
-        const int right = logical.x + logical.width - 1;
-        if (!intervalOverlapsInclusive(x1, x2, left, right))
-            continue;
-
-        if (y == logical.y || y == logical.y + logical.height) {
-            breakpoints.insert(std::max(x1, left));
-            breakpoints.insert(std::min(x2, right) + 1);
-        }
-    }
-
-    const std::vector<int> points{breakpoints.begin(), breakpoints.end()};
-    for (size_t i = 0; i + 1 < points.size(); ++i) {
-        const int segmentStart = points[i];
-        const int segmentEnd   = points[i + 1] - 1;
-        if (segmentStart > segmentEnd)
-            continue;
-
-        bool hasTopMonitor    = false;
-        bool hasBottomMonitor = false;
-        for (const auto& output : g_pPortalManager->getAllOutputs()) {
-            const auto logical = getLogicalGeometry(output);
-            if (logical.width <= 0 || logical.height <= 0)
-                return false;
-
-            const int left  = logical.x;
-            const int right = logical.x + logical.width - 1;
-            if (!intervalOverlapsInclusive(segmentStart, segmentEnd, left, right))
-                continue;
-
-            if (y == logical.y + logical.height && rangeContains(left, right, segmentStart))
-                hasTopMonitor = true;
-
-            if (y == logical.y && rangeContains(left, right, segmentStart))
-                hasBottomMonitor = true;
-        }
-
-        if (hasTopMonitor == hasBottomMonitor)
-            return false;
-    }
-
-    return true;
-}
-
-static bool isBarrierValid(int x1, int y1, int x2, int y2) {
-    if (x1 != x2 && y1 != y2) //At least one axis should be aligned
-        return false;
-
-    if (x1 == x2 && y1 == y2) //The barrier should have non-null area
-        return false;
-
-    if (x1 > x2)
-        std::swap(x1, x2);
-
-    if (y1 > y2)
-        std::swap(y1, y2);
-
-    if (x1 == x2)
-        return isVerticalBarrierOnExteriorBoundary(x1, y1, y2);
-
-    return isHorizontalBarrierOnExteriorBoundary(y1, x1, x2);
+    return InputCaptureGeometry::isBarrierValid(outputs, x1, y1, x2, y2);
 }
 
 CInputCapturePortal::CInputCapturePortal(SP<CCAbysslandInputCaptureManagerV1> mgr) : m_sState{mgr} {

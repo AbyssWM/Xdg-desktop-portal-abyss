@@ -1,5 +1,7 @@
 restore_match_test = executable('restore_match_test',
   'restore_match_test.cpp', '../src/shared/RestoreMatch.cpp')
+input_capture_geometry_test = executable('input_capture_geometry_test',
+  'input_capture_geometry_test.cpp', '../src/shared/InputCaptureGeometry.cpp')
 picker_data_test = executable('picker_data_test',
   'picker_data_test.cpp', '../src/shared/PickerData.cpp')
 restore_data_test = executable('restore_data_test',
@@ -17,6 +19,7 @@ picker_gui_test = executable('picker_gui_test',
   dependencies: [qtdep, dependency('abyssutils')])
 
 test('restore_match', restore_match_test)
+test('input_capture_geometry', input_capture_geometry_test)
 test('picker_data', picker_data_test)
 test('restore_data', restore_data_test)
 test('desktop_identity', desktop_identity_test)

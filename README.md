@@ -39,7 +39,7 @@ compiled C++ configuration system is not yet integrated into this backend.
 
 ## Tests
 
-Configure with `-DBUILD_TESTING=ON`, build, then run `ctest --test-dir build --output-on-failure`. The tests cover restore matching, typed D-Bus token round trips, malformed picker data, and the real Qt window button and restore checkbox using the offscreen platform. They do not verify PipeWire frames or restoration across a live compositor restart.
+Configure with `-DBUILD_TESTING=ON`, build, then run `ctest --test-dir build --output-on-failure`. The tests cover restore matching, typed D-Bus token round trips, malformed picker data, input-capture boundary validation including extreme coordinates, and the real Qt window button and restore checkbox using the offscreen platform. They do not verify PipeWire frames or restoration across a live compositor restart.
 
 This repository currently has no maintained CI workflow. The inherited SourceHut
 manifests targeted a different project and have been retired.
